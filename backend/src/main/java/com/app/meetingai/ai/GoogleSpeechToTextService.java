@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Files;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @ConditionalOnExpression("'${app.google.cloud.project-id:}'.length() > 0")
+@ConditionalOnMissingBean(TranscriptionService.class)
 public class GoogleSpeechToTextService implements TranscriptionService {
 
     private static final Logger log = LoggerFactory.getLogger(GoogleSpeechToTextService.class);
