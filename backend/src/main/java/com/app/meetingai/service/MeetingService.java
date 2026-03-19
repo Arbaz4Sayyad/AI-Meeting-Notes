@@ -103,12 +103,13 @@ public class MeetingService {
         
         meeting.setStartTime(startLocalTime);
         meeting.setEndTime(endLocalTime);
+        meeting.setAttendees(attendees);
         
         // Parse meeting type
         Meeting.MeetingType typeEnum = null;
         if (meetingType != null) {
             try {
-                typeEnum = Meeting.MeetingType.valueOf(meetingType);
+                typeEnum = Meeting.MeetingType.valueOf(meetingType.toUpperCase());
             } catch (IllegalArgumentException e) {
                 typeEnum = Meeting.MeetingType.ONLINE; // default
             }
@@ -165,25 +166,10 @@ public class MeetingService {
         meeting.setTitle(request.getTitle());
         meeting.setDescription(request.getDescription());
         meeting.setMeetingDate(request.getMeetingDate());
-        
-        // Parse time strings to LocalTime
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-        LocalTime startLocalTime = request.getStartTime() != null ? LocalTime.parse(request.getStartTime(), timeFormatter) : null;
-        LocalTime endLocalTime = request.getEndTime() != null ? LocalTime.parse(request.getEndTime(), timeFormatter) : null;
-        
-        meeting.setStartTime(startLocalTime);
-        meeting.setEndTime(endLocalTime);
-        
-        // Parse meeting type
-        Meeting.MeetingType typeEnum = null;
-        if (request.getMeetingType() != null) {
-            try {
-                typeEnum = Meeting.MeetingType.valueOf(request.getMeetingType());
-            } catch (IllegalArgumentException e) {
-                typeEnum = Meeting.MeetingType.ONLINE; // default
-            }
-        }
-        meeting.setMeetingType(typeEnum);
+        meeting.setStartTime(request.getStartTime());
+        meeting.setEndTime(request.getEndTime());
+        meeting.setAttendees(request.getAttendees());
+        meeting.setMeetingType(request.getMeetingType());
         meeting.setMeetingLink(request.getMeetingLink());
         meeting.setLocation(request.getLocation());
         meeting.setLanguage(request.getLanguage() != null ? request.getLanguage() : "en");

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Primary
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class ManualTranscriptionService implements TranscriptionService {
 
     private static final Logger log = LoggerFactory.getLogger(ManualTranscriptionService.class);

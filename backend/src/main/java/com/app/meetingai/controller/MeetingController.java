@@ -2,6 +2,9 @@ package com.app.meetingai.controller;
 
 import com.app.meetingai.dto.*;
 import com.app.meetingai.model.Meeting;
+import com.app.meetingai.model.MeetingSummary;
+import com.app.meetingai.repository.MeetingRepository;
+import com.app.meetingai.repository.MeetingSummaryRepository;
 import com.app.meetingai.security.UserPrincipal;
 import com.app.meetingai.service.MeetingService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,6 +14,7 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
