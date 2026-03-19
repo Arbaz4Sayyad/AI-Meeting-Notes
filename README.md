@@ -6,16 +6,16 @@
 [![React](https://img.shields.io/badge/React-18+-blue.svg)](https://reactjs.org/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-blue.svg)](https://www.docker.com/)
 
-A production-grade AI-powered meeting management system that automatically transcribes audio recordings and generates intelligent, structured summaries.
+A production-grade AI-powered meeting management system that automatically transcribes audio recordings and generates **actionable intelligence** with **structured insights** for enhanced **decision-making**.
 
 ## ✨ Features
 
 ### 🎯 Core Meeting Management
-- **Comprehensive Meeting Creation** - Title, description, date, time, attendees, location, agenda
+- **Comprehensive Meeting Creation** - Complete metadata capture for **actionable intelligence**
 - **Meeting Types** - Support for both online and offline meetings
 - **Attendee Management** - Multi-email input with validation
 - **Smart Scheduling** - Date/time picker with conflict detection
-- **Enhanced Metadata** - Language selection, meeting links, notes
+- **Enhanced Metadata** - Language selection, meeting links, agenda notes
 
 ### 🎤 Audio Processing
 - **Multiple Format Support** - MP3, WAV, M4A (up to 25MB)
@@ -26,8 +26,8 @@ A production-grade AI-powered meeting management system that automatically trans
 
 ### 🤖 AI-Powered Intelligence
 - **Automatic Transcription** - Multiple service support with fallback
-- **Intelligent Summarization** - 7-section structured output
-- **Action Item Extraction** - Task + Owner + Priority + Deadline
+- **Intelligent Summarization** - Generates **actionable intelligence** with **structured insights**
+- **Enhanced Decision-Making** - Clear action items and risk identification
 - **Risk Identification** - Automatic blocker detection
 - **Decision Tracking** - Key decisions automatically extracted
 - **Participant Recognition** - AI identifies key attendees
@@ -320,6 +320,20 @@ For questions and support:
 - 📖 Check the [Wiki](https://github.com/Arbaz4Sayyad/AI-Meeting-Notes/wiki)
 - 💬 Join our [Discussions](https://github.com/Arbaz4Sayyad/AI-Meeting-Notes/discussions)
 
+## 📸 Screenshots
+
+### Meeting Management
+![Meeting List](https://via.placeholder.com/600x400/4f46e5/4f46e5?text=Meeting+List+View)
+
+### Create Meeting Form
+![Create Meeting](https://via.placeholder.com/600x400/4f46e5/4f46e5?text=Create+Meeting+Form)
+
+### AI Summary Generation
+![AI Summary](https://via.placeholder.com/600x400/4f46e5/4f46e5?text=AI+Generated+Summary)
+
+### Audio Upload
+![Audio Upload](https://via.placeholder.com/600x400/4f46e5/4f46e5?text=Audio+Upload+Interface)
+
 ## 🆕 What's New in v2.0
 
 ### Major Upgrades
@@ -341,7 +355,7 @@ For questions and support:
 ---
 
 <div align="center">
-  <p>Made with ❤️ by the AI Meeting Notes Team</p>
+  <p>Made with ❤️ by Me</p>
   <p>⭐ If this project helped you, please give it a star!</p>
   <p>🚀 Production-ready AI Meeting Management System</p>
 </div>
