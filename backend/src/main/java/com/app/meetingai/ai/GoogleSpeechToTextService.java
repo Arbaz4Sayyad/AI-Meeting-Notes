@@ -18,9 +18,10 @@ import java.util.stream.Collectors;
  * Google Cloud Speech-to-Text implementation for audio transcription.
  * Requires GCP_PROJECT_ID and valid credentials (GCP_CREDENTIALS_PATH or GOOGLE_APPLICATION_CREDENTIALS).
  */
-@Service
+// @Service
 @ConditionalOnExpression("'${app.google.cloud.project-id:}'.length() > 0")
-public class GoogleSpeechToTextService implements TranscriptionService {
+@ConditionalOnMissingBean(TranscriptionService.class)
+// public class GoogleSpeechToTextService implements TranscriptionService {
 
     private static final Logger log = LoggerFactory.getLogger(GoogleSpeechToTextService.class);
 
