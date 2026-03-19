@@ -165,19 +165,43 @@ export default function CreateMeeting() {
     setLoading(true);
     try {
       if (file) {
-        // Upload audio file
+        // Create meeting with audio file and metadata
+        const formDataWithFile = new FormData();
+        formDataWithFile.append('title', formData.title || file.name);
+        formDataWithFile.append('description', formData.description);
+        formDataWithFile.append('meetingDate', formData.meetingDate);
+        formDataWithFile.append('startTime', formData.startTime);
+        formDataWithFile.append('endTime', formData.endTime);
+        formDataWithFile.append('attendees', JSON.stringify(formData.attendees));
+        formDataWithFile.append('meetingType', formData.meetingType);
+        formDataWithFile.append('meetingLink', formData.meetingLink);
+        formDataWithFile.append('location', formData.location);
+        formDataWithFile.append('language', formData.language);
+        formDataWithFile.append('agendaNotes', formData.agendaNotes);
+        formDataWithFile.append('transcript', formData.transcript);
+        formDataWithFile.append('file', file);
+        
         const { data } = await meetingsApi.upload(formData.title || file.name, file);
         if (data.success) {
           // Update meeting with additional metadata
           const updateData = {
-            ...formData,
-            title: formData.title || file.name
+            description: formData.description,
+            meetingDate: formData.meetingDate,
+            startTime: formData.startTime,
+            endTime: formData.endTime,
+            attendees: formData.attendees,
+            meetingType: formData.meetingType,
+            meetingLink: formData.meetingLink,
+            location: formData.location,
+            language: formData.language,
+            agendaNotes: formData.agendaNotes,
+            transcript: formData.transcript
           };
           await meetingsApi.updateMeeting(data.data.id, updateData);
           navigate(`/meetings/${data.data.id}`);
         }
       } else {
-        // Create meeting with transcript
+        // Create meeting with transcript only
         const { data } = await meetingsApi.create(formData);
         if (data.success) navigate(`/meetings/${data.data.id}`);
       }

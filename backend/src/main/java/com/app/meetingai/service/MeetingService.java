@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
@@ -70,6 +71,65 @@ public class MeetingService {
             log.info("Transcription skipped - user can edit transcript manually: {}", e.getMessage());
         }
 
+        return toDto(meeting);
+    }
+
+    @Transactional
+    public MeetingDto uploadMeetingWithMetadata(
+            UserPrincipal user,
+            String title,
+            String description,
+            LocalDate meetingDate,
+            String startTime,
+            String endTime,
+            List<String> attendees,
+            String meetingType,
+            String meetingLink,
+            String location,
+            String language,
+            String agendaNotes,
+            String transcript,
+            MultipartFile file) {
+        Meeting meeting = new Meeting();
+        meeting.setTitle(title != null && !title.isBlank() ? title : file.getOriginalFilename());
+        meeting.setDescription(description);
+        meeting.setMeetingDate(meetingDate);
+        meeting.setStartTime(startTime);
+        meeting.setEndTime(endTime);
+        meeting.setAttendees(attendees);
+        meeting.setMeetingType(meetingType);
+        meeting.setMeetingLink(meetingLink);
+        meeting.setLocation(location);
+        meeting.setLanguage(language != null ? language : "en");
+        meeting.setAgendaNotes(agendaNotes);
+        meeting.setUserId(user.userId());
+        
+        meeting = meetingRepository.save(meeting);
+        
+        // Handle file upload and transcription
+        if (file != null && !file.isEmpty()) {
+            String audioUrl = fileStorageService.store(file);
+            meeting.setAudioFileUrl(audioUrl);
+            meeting = meetingRepository.save(meeting);
+            
+            try {
+                Path audioPath = fileStorageService.getAbsolutePath(audioUrl);
+                if (audioPath != null && audioPath.toFile().exists()) {
+                    String transcribedText = transcriptionService.transcribe(audioPath.toString());
+                    meeting.setTranscript(transcribedText);
+                    meeting = meetingRepository.save(meeting);
+                }
+            } catch (UnsupportedOperationException e) {
+                log.info("Transcription skipped - user can edit transcript manually: {}", e.getMessage());
+            }
+        }
+        
+        // Handle transcript if provided
+        if (transcript != null && !transcript.isBlank()) {
+            meeting.setTranscript(transcript);
+            meeting = meetingRepository.save(meeting);
+        }
+        
         return toDto(meeting);
     }
 

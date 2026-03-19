@@ -36,8 +36,19 @@ public class MeetingController {
     public ResponseEntity<ApiResponse<MeetingDto>> upload(
             @AuthenticationPrincipal UserPrincipal user,
             @RequestParam("title") String title,
+            @RequestParam("description") String description,
+            @RequestParam("meetingDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate meetingDate,
+            @RequestParam("startTime") String startTime,
+            @RequestParam("endTime") String endTime,
+            @RequestParam("attendees") List<String> attendees,
+            @RequestParam("meetingType") String meetingType,
+            @RequestParam("meetingLink") String meetingLink,
+            @RequestParam("location") String location,
+            @RequestParam("language") String language,
+            @RequestParam("agendaNotes") String agendaNotes,
+            @RequestParam("transcript") String transcript,
             @RequestParam("file") MultipartFile file) {
-        MeetingDto meeting = meetingService.uploadMeeting(user, title, file);
+        MeetingDto meeting = meetingService.uploadMeetingWithMetadata(user, title, description, meetingDate, startTime, endTime, attendees, meetingType, meetingLink, location, language, agendaNotes, transcript, file);
         return ResponseEntity.ok(ApiResponse.success(meeting, "Meeting uploaded successfully"));
     }
 
