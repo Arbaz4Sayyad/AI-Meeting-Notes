@@ -27,25 +27,30 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.email())) {
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new ApiException("Email already registered", HttpStatus.CONFLICT);
         }
         User user = new User();
-        user.setName(request.name());
-        user.setEmail(request.email());
-        user.setPassword(passwordEncoder.encode(request.password()));
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setProvider("LOCAL");
         user = userRepository.save(user);
         String token = jwtService.generateToken(user.getId(), user.getEmail());
         return AuthResponse.of(token, user.getId(), user.getName(), user.getEmail());
     }
 
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.email())
+        User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ApiException("Invalid email or password", HttpStatus.UNAUTHORIZED));
-        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new ApiException("Invalid email or password", HttpStatus.UNAUTHORIZED);
         }
         String token = jwtService.generateToken(user.getId(), user.getEmail());
         return AuthResponse.of(token, user.getId(), user.getName(), user.getEmail());
+    }
+    
+    public String generateTokenForUser(User user) {
+        return jwtService.generateToken(user.getId(), user.getEmail());
     }
 }

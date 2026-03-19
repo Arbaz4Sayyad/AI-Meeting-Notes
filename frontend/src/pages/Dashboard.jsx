@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { meetingsApi } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import Navbar from '../components/Navbar';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -17,45 +18,8 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <nav className="bg-white border-b border-slate-200 px-4 py-3">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <Link to="/dashboard" className="text-xl font-bold text-slate-800">Meeting AI</Link>
-          <div className="flex items-center gap-4">
-            <span className="text-slate-600 text-sm">{user?.name}</span>
-            <button
-              onClick={() => { logout(); navigate('/login'); }}
-              className="text-sm text-slate-500 hover:text-slate-700"
-            >
-              Sign out
-            </button>
-            <Link
-              to="/templates"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-              </svg>
-              Templates
-            </Link>
-            <Link
-              to="/analytics"
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700 flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-              Analytics
-            </Link>
-            <Link
-              to="/meetings/upload"
-              className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700"
-            >
-              Upload Meeting
-            </Link>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
+      <Navbar />
 
       <main className="max-w-6xl mx-auto p-6">
         <h1 className="text-2xl font-bold text-slate-800 mb-6">Dashboard</h1>
@@ -123,10 +87,6 @@ export default function Dashboard() {
             </section>
           </>
         )}
-
-        <div className="mt-8">
-          <Link to="/meetings" className="text-teal-600 hover:text-teal-700 font-medium">View all meetings →</Link>
-        </div>
       </main>
     </div>
   );

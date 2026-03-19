@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Navbar from '../components/Navbar';
 
 // Mock API service - in real app, this would connect to the backend
 const templatesApi = {
@@ -149,20 +150,7 @@ export default function MeetingTemplates() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <nav className="bg-white border-b border-slate-200 px-4 py-3">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <Link to="/dashboard" className="text-xl font-bold text-slate-800">Meeting AI</Link>
-          <div className="flex items-center gap-4">
-            <span className="text-slate-600 text-sm">{user?.name}</span>
-            <Link
-              to="/meetings/upload"
-              className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700"
-            >
-              Upload Meeting
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       <main className="max-w-6xl mx-auto p-6">
         <div className="flex justify-between items-center mb-6">

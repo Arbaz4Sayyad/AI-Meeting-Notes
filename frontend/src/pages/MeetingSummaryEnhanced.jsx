@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { meetingsApi } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import Navbar from '../components/Navbar';
 
 export default function MeetingSummaryEnhanced() {
   const { id } = useParams();
@@ -189,12 +190,7 @@ export default function MeetingSummaryEnhanced() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <nav className="bg-white border-b border-slate-200 px-4 py-3">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <Link to="/dashboard" className="text-xl font-bold text-slate-800">Meeting AI</Link>
-          <span className="text-slate-600 text-sm">{user?.name}</span>
-        </div>
-      </nav>
+      <Navbar />
 
       <main className="max-w-4xl mx-auto p-6">
         <div className="flex justify-between items-center mb-6">

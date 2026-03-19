@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { meetingsApi } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import Navbar from '../components/Navbar';
 
 export default function MeetingsList() {
   const { user } = useAuth();
@@ -33,20 +34,7 @@ export default function MeetingsList() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <nav className="bg-white border-b border-slate-200 px-4 py-3">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <Link to="/dashboard" className="text-xl font-bold text-slate-800">Meeting AI</Link>
-          <div className="flex items-center gap-4">
-            <Link to="/meetings/create" className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700">
-              Create Meeting
-            </Link>
-            <Link to="/meetings/upload" className="px-4 py-2 bg-slate-600 text-white rounded-lg text-sm font-medium hover:bg-slate-700">
-              Upload Audio
-            </Link>
-            <span className="text-slate-600 text-sm">{user?.name}</span>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       <main className="max-w-6xl mx-auto p-6">
         <h1 className="text-2xl font-bold text-slate-800 mb-6">Meetings</h1>

@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { meetingsApi } from '../api/client';
 import { useAuth } from '../context/AuthContext';
+import Navbar from '../components/Navbar';
 
 export default function MeetingUpload() {
   const { user } = useAuth();
@@ -115,12 +116,7 @@ export default function MeetingUpload() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <nav className="bg-white border-b border-slate-200 px-4 py-3">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <a href="/dashboard" className="text-xl font-bold text-slate-800">Meeting AI</a>
-          <span className="text-slate-600 text-sm">{user?.name}</span>
-        </div>
-      </nav>
+      <Navbar />
 
       <main className="max-w-xl mx-auto p-6">
         <h1 className="text-2xl font-bold text-slate-800 mb-6">Upload Meeting</h1>

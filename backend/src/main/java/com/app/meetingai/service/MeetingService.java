@@ -292,6 +292,31 @@ public class MeetingService {
         );
     }
 
+    @Transactional
+    public void deleteMeeting(UserPrincipal user, Long id) {
+        Meeting meeting = findMeetingOrThrow(id, user.userId());
+        
+        // Delete associated summaries first
+        Optional<MeetingSummary> summary = summaryRepository.findByMeetingId(id);
+        summary.ifPresent(summaryRepository::delete);
+        
+        // Delete audio file if exists
+        if (meeting.getAudioFileUrl() != null) {
+            try {
+                Path audioPath = fileStorageService.getAbsolutePath(meeting.getAudioFileUrl());
+                if (audioPath != null && audioPath.toFile().exists()) {
+                    java.nio.file.Files.delete(audioPath);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to delete audio file: {}", e.getMessage());
+            }
+        }
+        
+        // Delete the meeting
+        meetingRepository.delete(meeting);
+        log.info("Deleted meeting {} for user {}", id, user.userId());
+    }
+
     private Meeting findMeetingOrThrow(Long id, Long userId) {
         return meetingRepository.findById(id)
                 .filter(m -> m.getUserId().equals(userId))

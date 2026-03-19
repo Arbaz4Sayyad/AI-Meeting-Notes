@@ -1,7 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import OAuthSuccess from './pages/OAuthSuccess';
 import Dashboard from './pages/Dashboard';
 import MeetingsList from './pages/MeetingsList';
 import MeetingUpload from './pages/MeetingUpload';
@@ -23,6 +25,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/oauth-success" element={<OAuthSuccess />} />
       <Route
         path="/dashboard"
         element={
@@ -40,18 +43,18 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/meetings/upload"
+        path="/create-meeting"
         element={
           <ProtectedRoute>
-            <MeetingUpload />
+            <CreateMeeting />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/meetings/create"
+        path="/upload-audio"
         element={
           <ProtectedRoute>
-            <CreateMeeting />
+            <MeetingUpload />
           </ProtectedRoute>
         }
       />
@@ -96,9 +99,11 @@ function AppRoutes() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

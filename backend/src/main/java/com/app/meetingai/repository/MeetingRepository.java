@@ -23,4 +23,6 @@ public interface MeetingRepository extends JpaRepository<Meeting, Long> {
     Page<Meeting> findByUserIdAndDateRange(@Param("userId") Long userId, @Param("from") Instant from, @Param("to") Instant to, Pageable pageable);
 
     long countByUserId(Long userId);
+
+    long countByUserIdAndCreatedAtAfter(Long userId, Instant after);
 }

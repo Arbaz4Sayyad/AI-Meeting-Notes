@@ -37,6 +37,7 @@ export const meetingsApi = {
   get: (id) => client.get(`/api/meetings/${id}`),
   create: (data) => client.post('/api/meetings', data),
   updateMeeting: (id, data) => client.put(`/api/meetings/${id}`, data),
+  delete: (id) => client.delete(`/api/meetings/${id}`),
   upload: (title, file) => {
     const form = new FormData();
     form.append('title', title);
@@ -64,6 +65,14 @@ export const meetingsApi = {
   generateSummary: (id) => client.post(`/api/meetings/${id}/generate-summary`),
   getSummary: (id) => client.get(`/api/meetings/${id}/summary`),
   dashboard: () => client.get('/api/meetings/dashboard'),
+};
+
+export const summariesApi = {
+  delete: (id) => client.delete(`/api/summaries/${id}`),
+};
+
+export const analyticsApi = {
+  get: () => client.get('/api/analytics'),
 };
 
 export default client;

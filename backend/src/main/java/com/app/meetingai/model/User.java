@@ -22,12 +22,15 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @NotBlank
-    @Column(nullable = false)
+    @Column
     private String password;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
+    
+    @NotBlank
+    @Column(nullable = false)
+    private String provider;
 
     @PrePersist
     protected void onCreate() {
@@ -38,10 +41,11 @@ public class User {
     public User() {
     }
 
-    public User(String name, String email, String password) {
+    public User(String name, String email, String password, String provider) {
         this.name = name;
         this.email = email;
         this.password = password;
+        this.provider = provider;
     }
 
     // Getters and Setters
@@ -83,5 +87,13 @@ public class User {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
     }
 }

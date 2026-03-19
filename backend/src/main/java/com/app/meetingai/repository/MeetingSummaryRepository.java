@@ -2,6 +2,8 @@ package com.app.meetingai.repository;
 
 import com.app.meetingai.model.MeetingSummary;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -10,4 +12,7 @@ import java.util.Optional;
 public interface MeetingSummaryRepository extends JpaRepository<MeetingSummary, Long> {
 
     Optional<MeetingSummary> findByMeetingId(Long meetingId);
+
+    @Query("SELECT COUNT(s) FROM MeetingSummary s JOIN Meeting m ON s.meetingId = m.id WHERE m.userId = :userId")
+    long countByMeetingUserId(@Param("userId") Long userId);
 }

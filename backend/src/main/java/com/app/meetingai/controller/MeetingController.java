@@ -144,4 +144,13 @@ public class MeetingController {
         MeetingSummaryDto summary = meetingService.getSummary(user, id);
         return ResponseEntity.ok(ApiResponse.success(summary));
     }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete meeting")
+    public ResponseEntity<ApiResponse<Void>> deleteMeeting(
+            @AuthenticationPrincipal UserPrincipal user,
+            @PathVariable Long id) {
+        meetingService.deleteMeeting(user, id);
+        return ResponseEntity.ok(ApiResponse.success(null, "Meeting deleted successfully"));
+    }
 }
