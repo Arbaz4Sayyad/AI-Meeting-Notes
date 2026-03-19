@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
  * This service throws UnsupportedOperationException to indicate manual transcription is required.
  */
 @Service
+@Primary
 public class ManualTranscriptionService implements TranscriptionService {
 
     private static final Logger log = LoggerFactory.getLogger(ManualTranscriptionService.class);
