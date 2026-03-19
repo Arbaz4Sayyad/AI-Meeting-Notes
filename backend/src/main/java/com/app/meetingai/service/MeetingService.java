@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
@@ -94,10 +95,25 @@ public class MeetingService {
         meeting.setTitle(title != null && !title.isBlank() ? title : file.getOriginalFilename());
         meeting.setDescription(description);
         meeting.setMeetingDate(meetingDate);
-        meeting.setStartTime(startTime);
-        meeting.setEndTime(endTime);
-        meeting.setAttendees(attendees);
-        meeting.setMeetingType(meetingType);
+        
+        // Parse time strings to LocalTime
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+        LocalTime startLocalTime = startTime != null ? LocalTime.parse(startTime, timeFormatter) : null;
+        LocalTime endLocalTime = endTime != null ? LocalTime.parse(endTime, timeFormatter) : null;
+        
+        meeting.setStartTime(startLocalTime);
+        meeting.setEndTime(endLocalTime);
+        
+        // Parse meeting type
+        Meeting.MeetingType typeEnum = null;
+        if (meetingType != null) {
+            try {
+                typeEnum = Meeting.MeetingType.valueOf(meetingType);
+            } catch (IllegalArgumentException e) {
+                typeEnum = Meeting.MeetingType.ONLINE; // default
+            }
+        }
+        meeting.setMeetingType(typeEnum);
         meeting.setMeetingLink(meetingLink);
         meeting.setLocation(location);
         meeting.setLanguage(language != null ? language : "en");
@@ -149,10 +165,25 @@ public class MeetingService {
         meeting.setTitle(request.getTitle());
         meeting.setDescription(request.getDescription());
         meeting.setMeetingDate(request.getMeetingDate());
-        meeting.setStartTime(request.getStartTime());
-        meeting.setEndTime(request.getEndTime());
-        meeting.setAttendees(request.getAttendees());
-        meeting.setMeetingType(request.getMeetingType());
+        
+        // Parse time strings to LocalTime
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+        LocalTime startLocalTime = request.getStartTime() != null ? LocalTime.parse(request.getStartTime(), timeFormatter) : null;
+        LocalTime endLocalTime = request.getEndTime() != null ? LocalTime.parse(request.getEndTime(), timeFormatter) : null;
+        
+        meeting.setStartTime(startLocalTime);
+        meeting.setEndTime(endLocalTime);
+        
+        // Parse meeting type
+        Meeting.MeetingType typeEnum = null;
+        if (request.getMeetingType() != null) {
+            try {
+                typeEnum = Meeting.MeetingType.valueOf(request.getMeetingType());
+            } catch (IllegalArgumentException e) {
+                typeEnum = Meeting.MeetingType.ONLINE; // default
+            }
+        }
+        meeting.setMeetingType(typeEnum);
         meeting.setMeetingLink(request.getMeetingLink());
         meeting.setLocation(request.getLocation());
         meeting.setLanguage(request.getLanguage() != null ? request.getLanguage() : "en");

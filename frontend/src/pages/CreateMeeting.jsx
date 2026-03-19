@@ -181,25 +181,21 @@ export default function CreateMeeting() {
         formDataWithFile.append('transcript', formData.transcript);
         formDataWithFile.append('file', file);
         
-        const { data } = await meetingsApi.upload(formData.title || file.name, file);
-        if (data.success) {
-          // Update meeting with additional metadata
-          const updateData = {
-            description: formData.description,
-            meetingDate: formData.meetingDate,
-            startTime: formData.startTime,
-            endTime: formData.endTime,
-            attendees: formData.attendees,
-            meetingType: formData.meetingType,
-            meetingLink: formData.meetingLink,
-            location: formData.location,
-            language: formData.language,
-            agendaNotes: formData.agendaNotes,
-            transcript: formData.transcript
-          };
-          await meetingsApi.updateMeeting(data.data.id, updateData);
-          navigate(`/meetings/${data.data.id}`);
-        }
+        const { data } = await meetingsApi.uploadWithMetadata({
+          title: formData.title || file.name,
+          description: formData.description,
+          meetingDate: formData.meetingDate,
+          startTime: formData.startTime,
+          endTime: formData.endTime,
+          attendees: formData.attendees,
+          meetingType: formData.meetingType,
+          meetingLink: formData.meetingLink,
+          location: formData.location,
+          language: formData.language,
+          agendaNotes: formData.agendaNotes,
+          transcript: formData.transcript,
+          file: file
+        });
       } else {
         // Create meeting with transcript only
         const { data } = await meetingsApi.create(formData);

@@ -45,6 +45,19 @@ export const meetingsApi = {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
+  uploadWithMetadata: (data) => {
+    const form = new FormData();
+    Object.keys(data).forEach(key => {
+      if (key === 'attendees') {
+        form.append(key, JSON.stringify(data[key]));
+      } else {
+        form.append(key, data[key]);
+      }
+    });
+    return client.post('/api/meetings/upload', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
   createWithTranscript: (data) => client.post('/api/meetings/basic', data),
   updateTranscript: (id, transcript) =>
     client.put(`/api/meetings/${id}/transcript`, { transcript }),
