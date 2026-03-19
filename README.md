@@ -322,21 +322,49 @@ For questions and support:
 
 ## 📸 Screenshots
 
-### Meeting Management
-![Meeting List](https://via.placeholder.com/600x400/4f46e5/4f46e5?text=Meeting+List+View)
+### 🏠 Dashboard & Navigation
+![Dashboard](./screenshots/all-meetings.png)
 
-### Create Meeting Form
-![Create Meeting](https://via.placeholder.com/600x400/4f46e5/4f46e5?text=Create+Meeting+Form)
+### 🌙 Dark Mode Theme
+![Dark Mode](./screenshots/dark-mode.png)
 
-### AI Summary Generation
-![AI Summary](https://via.placeholder.com/600x400/4f46e5/4f46e5?text=AI+Generated+Summary)
+### 🔐 Authentication
 
-### Audio Upload
-![Audio Upload](https://via.placeholder.com/600x400/4f46e5/4f46e5?text=Audio+Upload+Interface)
+#### Login Page
+![Login](./screenshots/login.png)
 
-## 🆕 What's New in v2.0
+#### Registration
+![Register](./screenshots/register.png)
+
+#### Google OAuth2 Login
+![Google OAuth](./screenshots/google-oauth.png)
+
+#### GitHub OAuth2 Login
+![GitHub OAuth](./screenshots/github-oauth.png)
+
+### 📝 Meeting Management
+
+#### Create Meeting Form
+![Create Meeting](./screenshots/create-meeting.png)
+
+#### Audio Transcript View
+![Audio Transcript](./screenshots/audio-transcript.png)
+
+#### Analytics Dashboard
+![Analytics](./screenshots/analytics.png)
+
+## 🆕 What's New in v2.1
 
 ### Major Upgrades
+- ✅ **OAuth2 Authentication** - Google and GitHub login integration
+- ✅ **Dark/Light Theme** - Beautiful theme toggle with smooth transitions
+- ✅ **Enhanced Navigation** - "All Meetings" button moved to navbar
+- ✅ **Theme Persistence** - Remembers your theme preference
+- ✅ **OAuth2 Security** - Secure JWT token generation and handling
+- ✅ **Responsive Design** - Mobile-optimized interface
+- ✅ **Production-Ready UI** - Professional dark mode styling
+
+### Previous v2.0 Features
 - ✅ **Enhanced Meeting Creation** - Complete form with all metadata
 - ✅ **Advanced Audio Upload** - Multiple formats, drag-and-drop
 - ✅ **AI Transcription** - Multiple service support
