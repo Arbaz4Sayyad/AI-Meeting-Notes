@@ -9,9 +9,9 @@ import org.springframework.stereotype.Service;
  * Manual transcription service fallback when Google Speech-to-Text is not configured.
  * This service throws UnsupportedOperationException to indicate manual transcription is required.
  */
-@Service
+@Service("aiTranscriptionService")
 @Primary
-public class ManualTranscriptionService implements TranscriptionService {
+public class ManualTranscriptionService implements AiTranscriptionService {
 
     private static final Logger log = LoggerFactory.getLogger(ManualTranscriptionService.class);
 

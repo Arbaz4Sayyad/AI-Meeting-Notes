@@ -33,7 +33,7 @@ public class MeetingTemplateService {
     }
 
     public MeetingTemplateDto createTemplate(UserPrincipal user, CreateTemplateRequest request) {
-        log.info("Creating new template: {} for user: {}", request.title(), user.userId());
+        log.info("Creating new template: {} for user: {}", request.title(), user.getUserId());
         
         MeetingTemplate template = new MeetingTemplate();
         template.setTitle(request.title());
@@ -41,7 +41,7 @@ public class MeetingTemplateService {
         template.setAgendaItems(request.agendaItems());
         template.setSuggestedParticipants(request.suggestedParticipants());
         template.setCommonActionItems(request.commonActionItems());
-        template.setUserId(user.userId());
+        template.setUserId(user.getUserId());
         template.setIsPublic(request.isPublic() != null ? request.isPublic() : false);
         
         template = templateRepository.save(template);
@@ -55,10 +55,10 @@ public class MeetingTemplateService {
         Page<MeetingTemplate> templates;
         
         if (includePublic) {
-            templates = templateRepository.findUserAndPublicTemplates(user.userId(), pageable)
+            templates = templateRepository.findUserAndPublicTemplates(user.getUserId(), pageable)
                     .map(t -> t);
         } else {
-            templates = templateRepository.findByUserIdOrderByCreatedAtDesc(user.userId(), pageable);
+            templates = templateRepository.findByUserIdOrderByCreatedAtDesc(user.getUserId(), pageable);
         }
         
         return templates.map(MeetingTemplateDto::from);
@@ -68,7 +68,7 @@ public class MeetingTemplateService {
         MeetingTemplate template = findTemplateOrThrow(id);
         
         // Check if user owns the template or if it's public
-        if (!template.getUserId().equals(user.userId()) && !template.getIsPublic()) {
+        if (!template.getUserId().equals(user.getUserId()) && !template.getIsPublic()) {
             throw new ApiException("Template not found or access denied", HttpStatus.NOT_FOUND);
         }
         
@@ -79,11 +79,11 @@ public class MeetingTemplateService {
         MeetingTemplate template = findTemplateOrThrow(id);
         
         // Check if user owns the template
-        if (!template.getUserId().equals(user.userId())) {
+        if (!template.getUserId().equals(user.getUserId())) {
             throw new ApiException("You can only edit your own templates", HttpStatus.FORBIDDEN);
         }
         
-        log.info("Updating template: {} for user: {}", id, user.userId());
+        log.info("Updating template: {} for user: {}", id, user.getUserId());
         
         if (request.title() != null) template.setTitle(request.title());
         if (request.description() != null) template.setDescription(request.description());
@@ -102,11 +102,11 @@ public class MeetingTemplateService {
         MeetingTemplate template = findTemplateOrThrow(id);
         
         // Check if user owns the template
-        if (!template.getUserId().equals(user.userId())) {
+        if (!template.getUserId().equals(user.getUserId())) {
             throw new ApiException("You can only delete your own templates", HttpStatus.FORBIDDEN);
         }
         
-        log.info("Deleting template: {} for user: {}", id, user.userId());
+        log.info("Deleting template: {} for user: {}", id, user.getUserId());
         templateRepository.delete(template);
     }
 
@@ -119,7 +119,7 @@ public class MeetingTemplateService {
     }
 
     public List<MeetingTemplateDto> searchTemplates(UserPrincipal user, String query) {
-        List<MeetingTemplate> templates = templateRepository.findUserAndPublicTemplatesOrderedByTitle(user.userId());
+        List<MeetingTemplate> templates = templateRepository.findUserAndPublicTemplatesOrderedByTitle(user.getUserId());
         
         if (query != null && !query.trim().isEmpty()) {
             String searchTerm = query.toLowerCase().trim();
@@ -139,11 +139,11 @@ public class MeetingTemplateService {
         MeetingTemplate original = findTemplateOrThrow(id);
         
         // Check if user can access the original template
-        if (!original.getUserId().equals(user.userId()) && !original.getIsPublic()) {
+        if (!original.getUserId().equals(user.getUserId()) && !original.getIsPublic()) {
             throw new ApiException("Template not found or access denied", HttpStatus.NOT_FOUND);
         }
         
-        log.info("Duplicating template: {} for user: {}", id, user.userId());
+        log.info("Duplicating template: {} for user: {}", id, user.getUserId());
         
         MeetingTemplate duplicate = new MeetingTemplate();
         duplicate.setTitle(original.getTitle() + " (Copy)");
@@ -151,7 +151,7 @@ public class MeetingTemplateService {
         duplicate.setAgendaItems(original.getAgendaItems());
         duplicate.setSuggestedParticipants(original.getSuggestedParticipants());
         duplicate.setCommonActionItems(original.getCommonActionItems());
-        duplicate.setUserId(user.userId());
+        duplicate.setUserId(user.getUserId());
         duplicate.setIsPublic(false); // Copies are private by default
         
         duplicate = templateRepository.save(duplicate);
@@ -166,7 +166,7 @@ public class MeetingTemplateService {
     }
 
     public long getTemplateCount(UserPrincipal user) {
-        return templateRepository.countByUserId(user.userId());
+        return templateRepository.countByUserId(user.getUserId());
     }
 
     public long getPublicTemplateCount() {

@@ -15,4 +15,6 @@ public interface MeetingSummaryRepository extends JpaRepository<MeetingSummary, 
 
     @Query("SELECT COUNT(s) FROM MeetingSummary s JOIN Meeting m ON s.meetingId = m.id WHERE m.userId = :userId")
     long countByMeetingUserId(@Param("userId") Long userId);
+
+    void deleteByMeetingId(Long meetingId);
 }

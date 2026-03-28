@@ -1,10 +1,12 @@
 package com.app.meetingai.controller;
 
-import com.app.meetingai.dto.*;
-import com.app.meetingai.model.Meeting;
-import com.app.meetingai.model.MeetingSummary;
-import com.app.meetingai.repository.MeetingRepository;
-import com.app.meetingai.repository.MeetingSummaryRepository;
+import com.app.meetingai.dto.ApiResponse;
+import com.app.meetingai.dto.MeetingDto;
+import com.app.meetingai.dto.MeetingSummaryDto;
+import com.app.meetingai.dto.CreateMeetingRequest;
+import com.app.meetingai.dto.BasicCreateMeetingRequest;
+import com.app.meetingai.dto.DashboardStatsDto;
+import com.app.meetingai.dto.TranscriptUpdateRequest;
 import com.app.meetingai.security.UserPrincipal;
 import com.app.meetingai.service.MeetingService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -123,7 +125,7 @@ public class MeetingController {
             @AuthenticationPrincipal UserPrincipal user,
             @PathVariable Long id,
             @Valid @RequestBody TranscriptUpdateRequest request) {
-        MeetingDto meeting = meetingService.updateTranscript(user, id, request.transcript());
+        MeetingDto meeting = meetingService.updateTranscript(id, request.transcript(), user);
         return ResponseEntity.ok(ApiResponse.success(meeting, "Transcript updated"));
     }
 
@@ -150,7 +152,7 @@ public class MeetingController {
     public ResponseEntity<ApiResponse<Void>> deleteMeeting(
             @AuthenticationPrincipal UserPrincipal user,
             @PathVariable Long id) {
-        meetingService.deleteMeeting(user, id);
+        meetingService.deleteMeeting(id, user);
         return ResponseEntity.ok(ApiResponse.success(null, "Meeting deleted successfully"));
     }
 }

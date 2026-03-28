@@ -16,13 +16,21 @@ public interface MeetingRepository extends JpaRepository<Meeting, Long> {
 
     Page<Meeting> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
 
-    @Query("SELECT m FROM Meeting m WHERE m.userId = :userId AND LOWER(m.title) LIKE LOWER(CONCAT('%', :search, '%')) ORDER BY m.createdAt DESC")
-    Page<Meeting> searchByUserIdAndTitle(@Param("userId") Long userId, @Param("search") String search, Pageable pageable);
-
-    @Query("SELECT m FROM Meeting m WHERE m.userId = :userId AND m.createdAt >= :from AND m.createdAt <= :to ORDER BY m.createdAt DESC")
-    Page<Meeting> findByUserIdAndDateRange(@Param("userId") Long userId, @Param("from") Instant from, @Param("to") Instant to, Pageable pageable);
+    @Query("SELECT m FROM Meeting m WHERE m.userId = :userId AND " +
+           "(LOWER(m.title) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(m.description) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
+           "m.createdAt >= :from AND m.createdAt <= :to ORDER BY m.createdAt DESC")
+    Page<Meeting> searchByUserIdAndTitleAndDateRange(@Param("userId") Long userId, @Param("search") String search, @Param("from") Instant from, @Param("to") Instant to, Pageable pageable);
 
     long countByUserId(Long userId);
 
-    long countByUserIdAndCreatedAtAfter(Long userId, Instant after);
+    long countByUserIdAndStatus(Long userId, Meeting.MeetingStatus status);
+    
+    long countByUserIdAndStatusIn(Long userId, List<Meeting.MeetingStatus> statuses);
+
+    long countByUserIdAndCreatedAtAfter(Long userId, Instant createdAt);
+
+    Page<Meeting> findByUserIdAndStatus(Long userId, Meeting.MeetingStatus status, Pageable pageable);
+
+    @Query("SELECT m FROM Meeting m WHERE m.userId = :userId AND m.status = 'COMPLETED' ORDER BY m.createdAt DESC")
+    List<Meeting> findRecentCompletedByUserId(@Param("userId") Long userId, Pageable pageable);
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.time.Instant;
 import java.util.List;
 
 @Entity
@@ -16,6 +17,9 @@ public class MeetingSummary {
 
     @Column(name = "meeting_id", nullable = false, unique = true)
     private Long meetingId;
+    
+    @Column(name = "created_at")
+    private Instant createdAt = Instant.now();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "meeting_id", insertable = false, updatable = false)
@@ -25,27 +29,27 @@ public class MeetingSummary {
     private String summary;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "key_points", columnDefinition = "jsonb")
+    @Column
     private List<String> keyPoints;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
+    @Column
     private List<String> decisions;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "action_items", columnDefinition = "jsonb")
+    @Column
     private List<String> actionItems;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "risks", columnDefinition = "jsonb")
+    @Column
     private List<String> risks;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "next_steps", columnDefinition = "jsonb")
+    @Column
     private List<String> nextSteps;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "participants", columnDefinition = "jsonb")
+    @Column
     private List<String> participants;
 
     // Constructors
@@ -136,5 +140,13 @@ public class MeetingSummary {
 
     public void setParticipants(List<String> participants) {
         this.participants = participants;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 }

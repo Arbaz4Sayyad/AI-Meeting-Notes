@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.nio.file.Path;
-import java.util.Base64;
 import java.util.Map;
 
 /**
@@ -18,7 +17,7 @@ import java.util.Map;
  */
 @Service
 @ConditionalOnExpression("'${app.openai.api-key:}'.length() > 0")
-public class WhisperTranscriptionService implements TranscriptionService {
+public class WhisperTranscriptionService implements AiTranscriptionService {
 
     private static final Logger log = LoggerFactory.getLogger(WhisperTranscriptionService.class);
     private static final String WHISPER_API_URL = "https://api.openai.com/v1/audio/transcriptions";

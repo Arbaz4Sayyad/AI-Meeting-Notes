@@ -1,4 +1,17 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { 
+  Sparkles, 
+  Plus, 
+  Upload, 
+  Layers, 
+  BarChart3, 
+  List, 
+  LogOut, 
+  Sun, 
+  Moon,
+  ChevronDown
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -12,81 +25,73 @@ export default function Navbar() {
     navigate('/login');
   };
 
+  const navLinks = [
+    { to: '/create-meeting', label: 'Create', icon: Plus, color: 'hover:text-teal-500' },
+    { to: '/upload-audio', label: 'Upload', icon: Upload, color: 'hover:text-blue-500' },
+    { to: '/templates', label: 'Templates', icon: Layers, color: 'hover:text-purple-500' },
+    { to: '/analytics', label: 'Analytics', icon: BarChart3, color: 'hover:text-orange-500' },
+    { to: '/meetings', label: 'History', icon: List, color: 'hover:text-teal-500' },
+  ];
+
   return (
-    <nav className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-b border-slate-200/50 dark:border-slate-700/50 px-6 py-4 sticky top-0 z-50 shadow-sm transition-colors duration-300">
-      <div className="max-w-7xl mx-auto flex justify-between items-center">
-        <div className="flex items-center gap-6">
+    <nav className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50 transition-all duration-500">
+      <div className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+        <div className="flex items-center gap-10">
           <Link 
             to="/dashboard" 
-            className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent tracking-tight hover:from-teal-700 hover:to-blue-700 transition-all duration-200"
+            className="flex items-center gap-2 group"
           >
-            Meeting AI
+            <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-teal-500/20 group-hover:scale-110 transition-transform">
+              <Sparkles className="w-6 h-6" />
+            </div>
+            <span className="text-xl font-black bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400 bg-clip-text text-transparent tracking-tighter uppercase">
+              Meeting AI
+            </span>
           </Link>
           
-          <div className="hidden md:flex items-center">
-            <Link
-              to="/create-meeting"
-              className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg hover:text-white hover:border-transparent hover:bg-gradient-to-r hover:from-teal-500 hover:to-blue-500 hover:shadow-lg transition-all duration-300 transform hover:scale-105"
-            >
-              Create Meeting
-            </Link>
-            <Link
-              to="/upload-audio"
-              className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg hover:text-white hover:border-transparent hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 hover:shadow-lg transition-all duration-300 transform hover:scale-105"
-            >
-              Upload Audio
-            </Link>
-            <Link
-              to="/templates"
-              className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg hover:text-white hover:border-transparent hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 hover:shadow-lg transition-all duration-300 transform hover:scale-105"
-            >
-              Templates
-            </Link>
-            <Link
-              to="/analytics"
-              className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg hover:text-white hover:border-transparent hover:bg-gradient-to-r hover:from-orange-500 hover:to-red-500 hover:shadow-lg transition-all duration-300 transform hover:scale-105"
-            >
-              Analytics
-            </Link>
-            <Link
-              to="/meetings"
-              className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg hover:text-white hover:border-transparent hover:bg-gradient-to-r hover:from-cyan-500 hover:to-blue-500 hover:shadow-lg transition-all duration-300 transform hover:scale-105"
-            >
-              All Meetings
-            </Link>
+          <div className="hidden lg:flex items-center gap-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`px-4 py-2 rounded-xl text-sm font-bold text-slate-500 dark:text-slate-400 ${link.color} hover:bg-slate-50 dark:hover:bg-slate-800 transition-all flex items-center gap-2`}
+              >
+                <link.icon className="w-4 h-4" />
+                {link.label}
+              </Link>
+            ))}
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
+        <div className="flex items-center gap-4">
+          <motion.button
+            whileTap={{ scale: 0.9 }}
             onClick={toggleTheme}
-            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200 transform hover:scale-105"
-            aria-label="Toggle theme"
+            className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 transition-all shadow-sm"
           >
-            {isDarkMode ? (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            ) : (
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-            )}
-          </button>
+            {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </motion.button>
           
-          <div className="hidden md:flex flex-col items-end">
-            <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{user?.name}</span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">{user?.email}</span>
+          <div className="h-8 w-px bg-slate-200 dark:bg-slate-800 mx-2" />
+          
+          <div className="hidden md:flex flex-col items-end mr-2">
+            <span className="text-sm font-black text-slate-800 dark:text-white leading-none mb-1">
+              {user?.name}
+            </span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
+              Pro Member
+            </span>
           </div>
-          
-          <div className="w-px h-6 bg-slate-300 dark:bg-slate-600"></div>
-          
-          <button
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={handleLogout}
-            className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 rounded-lg transition-all duration-200 transform hover:scale-105"
+            className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-sm font-black shadow-lg shadow-slate-900/10 hover:opacity-90 transition-all"
           >
-            Sign out
-          </button>
+            <LogOut className="w-4 h-4" />
+            <span className="hidden sm:inline">Exit</span>
+          </motion.button>
         </div>
       </div>
     </nav>

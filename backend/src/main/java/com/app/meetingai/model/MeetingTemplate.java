@@ -19,15 +19,12 @@ public class MeetingTemplate {
     @Column(nullable = false)
     private String description;
 
-    @Column(columnDefinition = "jsonb")
     @JdbcTypeCode(SqlTypes.JSON)
     private List<String> agendaItems;
 
-    @Column(columnDefinition = "jsonb")
     @JdbcTypeCode(SqlTypes.JSON)
     private List<String> suggestedParticipants;
 
-    @Column(columnDefinition = "jsonb")
     @JdbcTypeCode(SqlTypes.JSON)
     private List<String> commonActionItems;
 

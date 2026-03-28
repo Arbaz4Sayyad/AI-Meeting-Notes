@@ -40,7 +40,7 @@ public class AnalyticsController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> getAnalytics(
             @AuthenticationPrincipal UserPrincipal user) {
         
-        Long userId = user.userId();
+        Long userId = user.getUserId();
         
         // Basic counts
         long totalMeetings = meetingRepository.countByUserId(userId);

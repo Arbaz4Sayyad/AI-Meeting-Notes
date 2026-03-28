@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
  * Users must provide transcript manually or configure GCP credentials.
  */
 @Service
-@ConditionalOnMissingBean(TranscriptionService.class)
-public class NoOpTranscriptionService implements TranscriptionService {
+@ConditionalOnMissingBean(AiTranscriptionService.class)
+public class NoOpTranscriptionService implements AiTranscriptionService {
 
     private static final Logger log = LoggerFactory.getLogger(NoOpTranscriptionService.class);
 

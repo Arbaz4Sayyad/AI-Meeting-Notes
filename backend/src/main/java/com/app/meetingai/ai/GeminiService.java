@@ -186,8 +186,9 @@ public class GeminiService {
             summary.setNextSteps(toList(data.path("nextSteps")));
             summary.setParticipants(toList(data.path("participants")));
         } catch (Exception e) {
-            log.error("Failed to parse Gemini response: {}", e.getMessage());
-            throw new RuntimeException("Failed to parse AI response", e);
+            log.error("Failed to call Gemini AI: {}", e.getMessage());
+            // In a real app, you might want to retry or use a fallback
+            throw new RuntimeException("AI processing failed: " + e.getMessage(), e);
         }
         return summary;
     }

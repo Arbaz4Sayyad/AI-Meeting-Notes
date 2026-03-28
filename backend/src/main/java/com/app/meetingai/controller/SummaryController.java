@@ -1,12 +1,10 @@
 package com.app.meetingai.controller;
 
 import com.app.meetingai.dto.ApiResponse;
-import com.app.meetingai.dto.MeetingSummaryDto;
 import com.app.meetingai.model.MeetingSummary;
 import com.app.meetingai.repository.MeetingRepository;
 import com.app.meetingai.repository.MeetingSummaryRepository;
 import com.app.meetingai.security.UserPrincipal;
-import com.app.meetingai.service.MeetingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -41,7 +39,7 @@ public class SummaryController {
         
         // Verify the summary belongs to a meeting owned by the user
         meetingRepository.findById(summary.getMeetingId())
-                .filter(m -> m.getUserId().equals(user.userId()))
+                .filter(m -> m.getUserId().equals(user.getUserId()))
                 .orElseThrow(() -> new com.app.meetingai.utils.ApiException("Access denied", 
                         org.springframework.http.HttpStatus.FORBIDDEN));
         

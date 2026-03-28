@@ -52,6 +52,18 @@ public class FileStorageService {
         }
     }
 
+    public void delete(String urlPath) {
+        Path path = getAbsolutePath(urlPath);
+        if (path != null && Files.exists(path)) {
+            try {
+                Files.delete(path);
+                log.info("Deleted file: {}", path);
+            } catch (IOException e) {
+                log.error("Failed to delete file: {}", path, e);
+            }
+        }
+    }
+
     public Path getAbsolutePath(String urlPath) {
         if (urlPath == null || !urlPath.startsWith("/uploads/")) {
             return null;
