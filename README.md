@@ -31,7 +31,7 @@ It automatically extracts **decisions, action items, and risks** using AI-powere
 
 ## 🎥 Live Demo
 
-![AI Meeting Notes Demo](screenshots/Meeting_Notes_Demo_Vid.mp4)
+![AI Meeting Notes Demo](https://github.com/Arbaz4Sayyad/AI-Meeting-Notes/raw/main/screenshots/Meeting_Notes_Demo_Vid.mp4)
 
 ---
 
