@@ -29,6 +29,16 @@ It automatically extracts **decisions, action items, and risks** using AI-powere
 
 ---
 
+## 🎥 Live Demo
+
+<div align="center">
+  <video src="./screenshots/Meeting_Notes_Demo.mp4" width="100%" controls>
+    Your browser does not support the video tag.
+  </video>
+</div>
+
+---
+
 ## 🎯 Problem Statement
 
 Meetings generate large amounts of unstructured data, making it difficult to extract insights, track decisions, and ensure accountability.
