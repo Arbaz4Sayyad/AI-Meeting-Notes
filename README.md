@@ -32,7 +32,7 @@ It automatically extracts **decisions, action items, and risks** using AI-powere
 ## 🎥 Live Demo
 
 <div align="center">
-  <video src="./screenshots/Meeting_Notes_Demo.mp4" width="100%" controls>
+  <video src="./screenshots/Meeting_Noted_Demo_Vid.mp4" width="100%" controls>
     Your browser does not support the video tag.
   </video>
 </div>
