@@ -31,11 +31,7 @@ It automatically extracts **decisions, action items, and risks** using AI-powere
 
 ## 🎥 Live Demo
 
-<div align="center">
-  <video src="./screenshots/Meeting_Notes_Demo_Vid.mp4" width="100%" controls>
-    Your browser does not support the video tag.
-  </video>
-</div>
+![AI Meeting Notes Demo](screenshots/Meeting_Notes_Demo_Vid.mp4)
 
 ---
 
