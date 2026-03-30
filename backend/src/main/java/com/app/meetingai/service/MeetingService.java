@@ -11,12 +11,12 @@ import com.app.meetingai.model.MeetingSummary;
 import com.app.meetingai.repository.MeetingRepository;
 import com.app.meetingai.repository.MeetingSummaryRepository;
 import com.app.meetingai.security.UserPrincipal;
+import com.app.meetingai.ai.GeminiService;
 import com.app.meetingai.utils.ApiException;
 import com.app.meetingai.utils.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -41,15 +41,18 @@ public class MeetingService {
     private final MeetingSummaryRepository summaryRepository;
     private final FileStorageService fileStorageService;
     private final ApplicationEventPublisher eventPublisher;
+    private final GeminiService geminiService;
 
     public MeetingService(MeetingRepository meetingRepository,
                           MeetingSummaryRepository summaryRepository,
                           FileStorageService fileStorageService,
-                          ApplicationEventPublisher eventPublisher) {
+                          ApplicationEventPublisher eventPublisher,
+                          GeminiService geminiService) {
         this.meetingRepository = meetingRepository;
         this.summaryRepository = summaryRepository;
         this.fileStorageService = fileStorageService;
         this.eventPublisher = eventPublisher;
+        this.geminiService = geminiService;
     }
 
     /**
@@ -228,36 +231,70 @@ public class MeetingService {
     /**
      * Get meeting for user
      */
-    @Cacheable(value = "meetings", key = "#id")
     @Transactional(readOnly = true)
     public MeetingDto getMeeting(UserPrincipal user, Long id) {
-        log.info("Fetching meeting details for ID: {}", id);
+        log.info("Fetching meeting details for ID: {}, userId: {}", id, user.getUserId());
         Meeting meeting = getMeetingById(id);
         if (!meeting.getUserId().equals(user.getUserId())) {
             throw new ApiException("Access denied", HttpStatus.FORBIDDEN);
         }
-        return convertToDto(meeting);
+        MeetingDto dto = convertToDto(meeting);
+        log.info("Successfully fetched meeting ID: {}", id);
+        return dto;
     }
 
     /**
-     * Manual summary generation
+     * Generate AI summary — calls Gemini directly and saves the result.
      */
+    @Transactional
     public MeetingSummaryDto generateSummary(UserPrincipal user, Long id) {
+        log.info("Generate summary requested for meeting ID: {}, user: {}", id, user.getUserId());
         Meeting meeting = getMeetingById(id);
         if (!meeting.getUserId().equals(user.getUserId())) {
             throw new ApiException("Access denied", HttpStatus.FORBIDDEN);
         }
-        
-        if (meeting.getTranscript() == null || meeting.getTranscript().isEmpty()) {
-            throw new ApiException("Cannot generate summary: Transcript is empty", HttpStatus.BAD_REQUEST);
+
+        if (meeting.getTranscript() == null || meeting.getTranscript().trim().isEmpty()) {
+            throw new ApiException("Cannot generate summary: Transcript is empty. Please add a transcript first.",
+                    HttpStatus.BAD_REQUEST);
         }
 
-        // Logic handled by AIProcessingService typically, but here we just return the Summary if exists 
-        // or trigger processing. For brevity, we'll just check repository.
-        MeetingSummary summary = summaryRepository.findByMeetingId(id)
-                .orElseThrow(() -> new ApiException("Summary not generated yet/failed", HttpStatus.ACCEPTED));
-        
-        return convertToSummaryDto(summary);
+        // Delete old summary if exists (for re-generation)
+        summaryRepository.findByMeetingId(id).ifPresent(existing -> {
+            log.info("Deleting existing summary for meeting ID: {}", id);
+            summaryRepository.delete(existing);
+            summaryRepository.flush();
+        });
+
+        try {
+            // Mark meeting as processing
+            meeting.markAsAiProcessing();
+            meetingRepository.save(meeting);
+
+            // Directly call Gemini
+            log.info("Calling Gemini AI for meeting ID: {}", id);
+            MeetingSummary summary = geminiService.generateSummary(id, meeting.getTranscript());
+            summary.setCreatedAt(Instant.now());
+            summary = summaryRepository.save(summary);
+
+            // Mark meeting as completed
+            meeting.markAsCompleted();
+            meetingRepository.save(meeting);
+
+            log.info("Summary generation successful for meeting ID: {}, summary ID: {}", id, summary.getId());
+            return convertToSummaryDto(summary);
+
+        } catch (ApiException e) {
+            meeting.markAsFailed(e.getMessage());
+            meetingRepository.save(meeting);
+            throw e;
+        } catch (Exception e) {
+            log.error("Summary generation failed for meeting ID: {}", id, e);
+            meeting.markAsFailed("AI generation failed: " + e.getMessage());
+            meetingRepository.save(meeting);
+            throw new ApiException("Failed to generate summary: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
@@ -390,36 +427,56 @@ public class MeetingService {
     }
 
     /**
-     * Convert Meeting entity to DTO
+     * Convert Meeting entity to DTO - fully null-safe
      */
     private MeetingDto convertToDto(Meeting meeting) {
-        MeetingDto dto = new MeetingDto();
-        dto.setId(meeting.getId());
-        dto.setTitle(meeting.getTitle());
-        dto.setDescription(meeting.getDescription());
-        dto.setMeetingDate(meeting.getMeetingDate());
-        dto.setStartTime(meeting.getStartTime());
-        dto.setEndTime(meeting.getEndTime());
-        dto.setAttendees(meeting.getAttendees());
-        dto.setMeetingType(meeting.getMeetingType().name());
-        dto.setMeetingLink(meeting.getMeetingLink());
-        dto.setLocation(meeting.getLocation());
-        dto.setLanguage(meeting.getLanguage());
-        dto.setAgendaNotes(meeting.getAgendaNotes());
-        dto.setAudioFileUrl(meeting.getAudioFileUrl());
-        dto.setTranscript(meeting.getTranscript());
-        dto.setCreatedAt(meeting.getCreatedAt());
-        dto.setStatus(meeting.getStatus().name());
-        dto.setUploadedAt(meeting.getUploadedAt());
-        dto.setTranscriptionStartedAt(meeting.getTranscriptionStartedAt());
-        dto.setTranscriptionCompletedAt(meeting.getTranscriptionCompletedAt());
-        dto.setAiProcessingStartedAt(meeting.getAiProcessingStartedAt());
-        dto.setCompletedAt(meeting.getCompletedAt());
-        dto.setErrorMessage(meeting.getErrorMessage());
-        dto.setRetryCount(meeting.getRetryCount());
-        dto.setProcessingDurationMs(meeting.getProcessingDurationMs());
-        dto.setUserId(meeting.getUserId());
-        dto.setHasSummary(summaryRepository.findByMeetingId(meeting.getId()).isPresent());
-        return dto;
+        try {
+            MeetingDto dto = new MeetingDto();
+            dto.setId(meeting.getId());
+            dto.setTitle(meeting.getTitle());
+            dto.setDescription(meeting.getDescription());
+            dto.setMeetingDate(meeting.getMeetingDate());
+            dto.setStartTime(meeting.getStartTime());
+            dto.setEndTime(meeting.getEndTime());
+            dto.setAttendees(meeting.getAttendees() != null
+                    ? new java.util.ArrayList<>(meeting.getAttendees())
+                    : new java.util.ArrayList<>());
+            // Null-safe enum conversion
+            dto.setMeetingType(meeting.getMeetingType() != null
+                    ? meeting.getMeetingType().name()
+                    : Meeting.MeetingType.ONLINE.name());
+            dto.setMeetingLink(meeting.getMeetingLink());
+            dto.setLocation(meeting.getLocation());
+            dto.setLanguage(meeting.getLanguage() != null ? meeting.getLanguage() : "en");
+            dto.setAgendaNotes(meeting.getAgendaNotes());
+            dto.setAudioFileUrl(meeting.getAudioFileUrl());
+            dto.setTranscript(meeting.getTranscript());
+            dto.setCreatedAt(meeting.getCreatedAt());
+            // Null-safe status conversion
+            dto.setStatus(meeting.getStatus() != null
+                    ? meeting.getStatus().name()
+                    : MeetingStatus.CREATED.name());
+            dto.setUploadedAt(meeting.getUploadedAt());
+            dto.setTranscriptionStartedAt(meeting.getTranscriptionStartedAt());
+            dto.setTranscriptionCompletedAt(meeting.getTranscriptionCompletedAt());
+            dto.setAiProcessingStartedAt(meeting.getAiProcessingStartedAt());
+            dto.setCompletedAt(meeting.getCompletedAt());
+            dto.setErrorMessage(meeting.getErrorMessage());
+            dto.setRetryCount(meeting.getRetryCount() != null ? meeting.getRetryCount() : 0);
+            dto.setProcessingDurationMs(meeting.getProcessingDurationMs());
+            dto.setUserId(meeting.getUserId());
+            // Separate DB call with null safety
+            try {
+                dto.setHasSummary(summaryRepository.findByMeetingId(meeting.getId()).isPresent());
+            } catch (Exception e) {
+                log.warn("Could not check summary existence for meeting {}: {}", meeting.getId(), e.getMessage());
+                dto.setHasSummary(false);
+            }
+            return dto;
+        } catch (Exception e) {
+            log.error("Error converting meeting {} to DTO: {}", meeting.getId(), e.getMessage(), e);
+            throw new ApiException("Failed to load meeting data: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

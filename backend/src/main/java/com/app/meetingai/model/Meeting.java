@@ -47,7 +47,7 @@ public class Meeting {
 
     private String language = "en";
 
-    @Column(name = "agenda_notes", columnDefinition = "CLOB")
+    @Column(name = "agenda_notes", columnDefinition = "TEXT")
     private String agendaNotes;
 
     @Column(name = "audio_file_url")
@@ -78,7 +78,7 @@ public class Meeting {
     private Instant completedAt;
 
     // NEW: Error handling
-    @Column(name = "error_message", columnDefinition = "CLOB")
+    @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
 
     @Column(name = "retry_count")

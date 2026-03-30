@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { authApi } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
@@ -10,7 +10,9 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
-  const navigate = useNavigate();
+   const navigate = useNavigate();
+  const location = useLocation();
+  const successMessage = location.state?.message;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,6 +45,9 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="bg-red-500/20 text-red-200 px-4 py-3 rounded-lg text-sm">{error}</div>
+            )}
+            {successMessage && (
+              <div className="bg-teal-500/20 text-teal-200 px-4 py-3 rounded-lg text-sm">{successMessage}</div>
             )}
             <div>
               <label className="block text-sm font-medium text-teal-100 mb-1">Email</label>
@@ -84,6 +89,11 @@ export default function Login() {
                   )}
                 </button>
               </div>
+              <div className="flex justify-end mt-1">
+                <Link to="/forgot-password" size="sm" className="text-sm text-teal-400 hover:text-teal-300 transition-colors">
+                  Forgot password?
+                </Link>
+              </div>
             </div>
             <button
               type="submit"
@@ -106,7 +116,7 @@ export default function Login() {
 
             <div className="grid grid-cols-2 gap-4">
               <button
-                onClick={() => window.location.href = 'http://localhost:8090/oauth2/authorization/google'}
+                onClick={() => window.location.href = 'http://localhost:8080/oauth2/authorization/google'}
                 className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-white/5 border border-white/10 text-white hover:bg-white/10 transition"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -118,7 +128,7 @@ export default function Login() {
                 Google
               </button>
               <button
-                onClick={() => window.location.href = 'http://localhost:8090/oauth2/authorization/github'}
+                onClick={() => window.location.href = 'http://localhost:8080/oauth2/authorization/github'}
                 className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-white/5 border border-white/10 text-white hover:bg-white/10 transition"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

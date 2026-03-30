@@ -135,7 +135,7 @@ public class MeetingController {
             @AuthenticationPrincipal UserPrincipal user,
             @PathVariable Long id) {
         MeetingSummaryDto summary = meetingService.generateSummary(user, id);
-        return ResponseEntity.ok(ApiResponse.success(summary, "Summary generated"));
+        return ResponseEntity.ok(ApiResponse.success(summary, "Summary generated successfully"));
     }
 
     @GetMapping("/{id}/summary")

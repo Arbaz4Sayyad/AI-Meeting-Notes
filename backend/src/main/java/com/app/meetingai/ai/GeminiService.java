@@ -21,7 +21,9 @@ import java.util.Map;
 public class GeminiService {
 
     private static final Logger log = LoggerFactory.getLogger(GeminiService.class);
-    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s";
+    // Try v1 first (broader key support), fallback to v1beta
+    private static final String GEMINI_API_URL_V1 = "https://generativelanguage.googleapis.com/v1/models/%s:generateContent?key=%s";
+    private static final String GEMINI_API_URL_V1BETA = "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s";
 
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
@@ -47,52 +49,51 @@ public class GeminiService {
 
     public MeetingSummary generateSummary(Long meetingId, String transcript) {
         if (apiKey == null || apiKey.isBlank()) {
-            throw new com.app.meetingai.utils.ApiException("GEMINI_API_KEY is not configured", org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE);
+            throw new com.app.meetingai.utils.ApiException(
+                "GEMINI_API_KEY is not configured", org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE);
         }
 
         String prompt = buildPrompt(transcript);
-        String url = String.format(GEMINI_API_URL, summaryModel, apiKey);
         
-        log.info("Gemini API call - Model: {}, URL: {}", summaryModel, url);
-
+        // Request body WITHOUT responseMimeType for maximum compatibility
         Map<String, Object> requestBody = Map.of(
                 "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))),
                 "generationConfig", Map.of(
                         "temperature", 0.3,
-                        "maxOutputTokens", 4096,
-                        "responseMimeType", "application/json"
+                        "maxOutputTokens", 4096
                 )
         );
 
-        try {
-            log.info("Calling Gemini API with model: {}", summaryModel);
-            String response = webClient.post()
-                    .uri(url)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(requestBody)
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .block();
+        // Try v1 API first, then v1beta
+        String[] urls = {
+            String.format(GEMINI_API_URL_V1, summaryModel, apiKey),
+            String.format(GEMINI_API_URL_V1BETA, summaryModel, apiKey)
+        };
 
-            return parseResponse(meetingId, response);
-        } catch (Exception e) {
-            log.error("Gemini API error: {}", e.getMessage(), e);
-            String errorMessage = "Failed to generate summary";
-            
-            if (e.getMessage().contains("404")) {
-                errorMessage = "Gemini model not found or API key invalid. Please check GEMINI_API_KEY configuration.";
-            } else if (e.getMessage().contains("403") || e.getMessage().contains("401")) {
-                errorMessage = "Gemini API authentication failed. Please check your API key.";
-            } else if (e.getMessage().contains("429")) {
-                errorMessage = "Gemini API rate limit exceeded. Please try again later.";
-            } else if (e.getMessage().contains("500")) {
-                errorMessage = "Gemini API server error. Please try again later.";
+        Exception lastException = null;
+        for (String url : urls) {
+            try {
+                log.info("Calling Gemini API: {}", url.replace(apiKey, "[HIDDEN]"));
+                String response = webClient.post()
+                        .uri(url)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(requestBody)
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .block();
+
+                log.info("Gemini API responded successfully");
+                return parseResponse(meetingId, response);
+            } catch (Exception e) {
+                log.warn("Gemini API call failed for URL [{}]: {}", url.replace(apiKey, "[HIDDEN]"), e.getMessage());
+                lastException = e;
             }
-            
-            // Fallback: Create a basic summary without AI
-            log.warn("Falling back to basic summary generation due to Gemini API failure");
-            return createFallbackSummary(meetingId, transcript);
         }
+        
+        // Both URLs failed — use fallback
+        log.error("All Gemini API calls failed. Last error: {}", lastException != null ? lastException.getMessage() : "unknown");
+        log.warn("Falling back to basic summary generation due to Gemini API failure");
+        return createFallbackSummary(meetingId, transcript);
     }
 
     private String buildPrompt(String transcript) {

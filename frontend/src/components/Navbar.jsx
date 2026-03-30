@@ -10,7 +10,8 @@ import {
   LogOut, 
   Sun, 
   Moon,
-  ChevronDown
+  ChevronDown,
+  Github
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -71,6 +72,18 @@ export default function Navbar() {
           >
             {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </motion.button>
+          
+          <motion.a
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            href="https://github.com/Arbaz4Sayyad/AI-Meeting-Notes"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-700 transition-all shadow-sm flex items-center gap-2"
+          >
+            <Github className="w-5 h-5 hidden sm:block" />
+            <span className="sm:hidden text-xs font-bold uppercase tracking-wider">GitHub</span>
+          </motion.a>
           
           <div className="h-8 w-px bg-slate-200 dark:bg-slate-800 mx-2" />
           

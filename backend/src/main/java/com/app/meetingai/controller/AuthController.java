@@ -36,4 +36,18 @@ public class AuthController {
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Initiate password reset")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody com.app.meetingai.dto.ForgotPasswordRequest request) {
+        authService.forgotPassword(request.getEmail());
+        return ResponseEntity.ok(ApiResponse.success(null, "Password reset link sent to your email"));
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Complete password reset")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody com.app.meetingai.dto.ResetPasswordRequest request) {
+        authService.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.ok(ApiResponse.success(null, "Password reset successful"));
+    }
 }

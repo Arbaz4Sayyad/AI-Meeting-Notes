@@ -35,7 +35,7 @@ const Navbar = () => {
     { name: 'Features', href: '#features' },
     { name: 'How it Works', href: '#how-it-works' },
     { name: 'Tech', href: '#architecture' },
-    { name: 'GitHub', href: 'https://github.com' },
+    { name: 'GitHub', href: 'https://github.com/Arbaz4Sayyad/AI-Meeting-Notes' },
     { name: 'Login', href: '/login' },
   ];
 
@@ -188,7 +188,7 @@ const Navbar = () => {
                     }`}
                     whileHover={{ x: 5 }}
                   >
-                    {item.name === 'GitHub' && <Github className="w-5 h-5" />}
+                    {/* Icon removed for mobile as per user request */}
                     <span>{item.name}</span>
                   </motion.a>
                 ))}

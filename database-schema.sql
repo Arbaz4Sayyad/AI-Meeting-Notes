@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
+    password VARCHAR(255),
+    provider VARCHAR(50) NOT NULL DEFAULT 'local',
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -25,6 +26,15 @@ CREATE TABLE IF NOT EXISTS meetings (
     agenda_notes TEXT,
     audio_file_url VARCHAR(500),
     transcript TEXT,
+    status VARCHAR(50) NOT NULL DEFAULT 'CREATED',
+    uploaded_at TIMESTAMP WITH TIME ZONE,
+    transcription_started_at TIMESTAMP WITH TIME ZONE,
+    transcription_completed_at TIMESTAMP WITH TIME ZONE,
+    ai_processing_started_at TIMESTAMP WITH TIME ZONE,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    error_message TEXT,
+    retry_count INTEGER DEFAULT 0,
+    processing_duration_ms BIGINT,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     user_id BIGINT NOT NULL REFERENCES users(id)
 );
@@ -38,7 +48,15 @@ CREATE TABLE IF NOT EXISTS meeting_summaries (
     action_items JSONB,
     risks JSONB,
     next_steps JSONB,
-    participants JSONB
+    participants JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id BIGSERIAL PRIMARY KEY,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    expiry_date TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
 CREATE INDEX idx_meetings_user_id ON meetings(user_id);

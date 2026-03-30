@@ -4,8 +4,10 @@ import com.app.meetingai.dto.AuthResponse;
 import com.app.meetingai.dto.LoginRequest;
 import com.app.meetingai.dto.RegisterRequest;
 import com.app.meetingai.model.User;
+import com.app.meetingai.repository.PasswordResetTokenRepository;
 import com.app.meetingai.repository.UserRepository;
 import com.app.meetingai.security.JwtService;
+import com.app.meetingai.service.EmailService;
 import com.app.meetingai.utils.ApiException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,13 +18,59 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final EmailService emailService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+    public AuthService(UserRepository userRepository, 
+                       PasswordResetTokenRepository passwordResetTokenRepository,
+                       PasswordEncoder passwordEncoder, 
+                       JwtService jwtService,
+                       EmailService emailService) {
         this.userRepository = userRepository;
+        this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.emailService = emailService;
+    }
+
+    @Transactional
+    public void forgotPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ApiException("User not found with email: " + email, HttpStatus.NOT_FOUND));
+
+        // Delete any existing token for this user
+        passwordResetTokenRepository.findByUser(user).ifPresent(passwordResetTokenRepository::delete);
+
+        // Generate a random token
+        String token = java.util.UUID.randomUUID().toString();
+        com.app.meetingai.model.PasswordResetToken resetToken = new com.app.meetingai.model.PasswordResetToken(
+                token, 
+                user, 
+                java.time.Instant.now().plus(1, java.time.temporal.ChronoUnit.HOURS)
+        );
+
+        passwordResetTokenRepository.save(resetToken);
+        emailService.sendPasswordResetEmail(user.getEmail(), token);
+    }
+
+    @Transactional
+    public void resetPassword(String token, String newPassword) {
+        com.app.meetingai.model.PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token)
+                .orElseThrow(() -> new ApiException("Invalid or expired password reset token", HttpStatus.BAD_REQUEST));
+
+        if (resetToken.isExpired()) {
+            passwordResetTokenRepository.delete(resetToken);
+            throw new ApiException("Password reset token has expired", HttpStatus.BAD_REQUEST);
+        }
+
+        User user = resetToken.getUser();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        // Delete token after successful reset
+        passwordResetTokenRepository.delete(resetToken);
     }
 
     @Transactional

@@ -30,6 +30,8 @@ client.interceptors.response.use(
 export const authApi = {
   register: (data) => client.post('/api/auth/register', data),
   login: (data) => client.post('/api/auth/login', data),
+  forgotPassword: (data) => client.post('/api/auth/forgot-password', data),
+  resetPassword: (data) => client.post('/api/auth/reset-password', data),
 };
 
 export const meetingsApi = {

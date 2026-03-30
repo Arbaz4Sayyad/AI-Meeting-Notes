@@ -5,6 +5,8 @@ import LandingPage from './LandingPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import OAuthSuccess from './pages/OAuthSuccess';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import MeetingsList from './pages/MeetingsList';
 import MeetingUpload from './pages/MeetingUpload';
@@ -28,6 +30,8 @@ function AppRoutes() {
       <Route path="/landing" element={<Navigate to="/" replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/oauth-success" element={<OAuthSuccess />} />
       <Route
         path="/dashboard"
