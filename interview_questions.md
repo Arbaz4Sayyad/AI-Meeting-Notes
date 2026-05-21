@@ -145,3 +145,82 @@ By returning a `202 Accepted` immediately, we decouple the heavy processing from
 
 #### **Q30. What’s the most important lesson you learned building this?**
 **Answer:** **Design for Failure.** In an AI-driven app, the "Happy Path" is rare. External APIs will fail, audio quality will be bad, and LLMs will return garbage. Building a robust **Retry & Error Tracking** system (using the `failed_jobs` table) was more important than the actual AI logic itself. It’s what makes the app feel "Production Grade" rather than just a hobby project.
+
+---
+
+### **Section 11: Practical Experience — Code-Backed Answers**
+
+#### **Q31. What is the heaviest API you built — how many requests did it handle per day?**
+**Answer:** The heaviest endpoint in this system is `POST /api/meetings/upload`. It's a multipart form that accepts an audio file (up to 50MB), meeting metadata — title, attendees, agenda, language, timestamps — and optionally a pre-typed transcript. It is heavy in two ways: **payload size** and **computational cost**.
+
+On the payload side, I configured Spring's multipart handling to stream the incoming bytes directly to disk rather than buffering the entire file in the JVM heap, keeping memory usage flat regardless of file size.
+
+On the compute side, a single upload triggers a full async pipeline: the file is saved, a `Spring ApplicationEvent` is fired, a dedicated `transcriptionExecutor` thread pool picks it up, calls **Google Cloud Speech-to-Text**, and then fires a second event that routes to an `aiProcessingExecutor` pool which calls **Gemini** for summarization.
+
+The API itself responds immediately with `200 OK` — the user is not blocked waiting for any of that. Because of this async design, the endpoint can handle a large number of concurrent uploads while staying responsive. The thread pools are configured with a `QueueCapacity` of 100, meaning up to 100 processing jobs can be queued behind the active threads before backpressure kicks in. A **Bucket4j** rate limiter caps AI-heavy requests at **5 per minute per user**, protecting both the backend thread pools and the external AI API quotas.
+
+**Code references:** `AsyncConfig.java` (thread pool sizes: corePool=2, maxPool=5, queue=100), `MeetingController.java` (`/upload` endpoint), `MeetingService.java` (event publish after file save), `RateLimiterService.java` (5 req/min per user).
+
+---
+
+#### **Q32. Before your DB optimisations, what were the slow query times in your logs? After?**
+**Answer:** The key performance concern was queries that filter meetings by user. Without indexes, any query filtering by `user_id` is a full table scan on the `meetings` table — cost grows linearly with data.
+
+I identified two specific patterns that would degrade at scale:
+1. **Dashboard load** — `findByUserIdOrderByCreatedAtDesc` runs on every page load for every authenticated user.
+2. **Search with date range** — `searchByUserIdAndTitleAndDateRange` does a `LOWER(title) LIKE` search plus an `Instant` range filter — two unindexed conditions on a hot table.
+
+My DB optimisations were:
+- `CREATE INDEX idx_meetings_user_id ON meetings(user_id)` — turns the dashboard query from an O(n) table scan to an index seek. On a 10k-row table this difference is roughly **~200ms → ~2ms**.
+- `CREATE INDEX idx_meetings_created_at ON meetings(created_at)` — accelerates the date-range filtering in the search query.
+- `CREATE INDEX idx_meeting_summaries_meeting_id ON meeting_summaries(meeting_id)` — the `convertToDto` method calls `summaryRepository.findByMeetingId()` for every meeting in a list, so this index prevents N+1-style scan overhead per list item.
+
+I also applied `@Transactional(readOnly = true)` on all read methods, which tells the JPA provider and PostgreSQL driver to skip dirty-checking and optimise for read-only access.
+
+**Known follow-up:** `convertToDto` still fires a `summaryRepository.findByMeetingId()` per meeting inside a list — a classic N+1 problem. The fix is to batch-load summaries for all meeting IDs in a single query.
+
+**Code references:** `database-schema.sql` (3 indexes, lines 62–64), `MeetingRepository.java` (LIKE + date-range JPQL), `MeetingService.java` (`@Transactional(readOnly = true)` on read methods).
+
+---
+
+#### **Q33. Did any of your Kafka consumers ever fall behind? What was the lag, and what did you do?**
+**Answer:** This project deliberately does **not** use Kafka — and that was the right trade-off. I used **Spring Application Events with `@Async`** as the messaging layer. For a single-instance backend where throughput is naturally bounded by external AI API rate limits, running a Kafka cluster would add operational overhead without adding real value.
+
+The `@Async` executor queues are effectively my "consumer lag" equivalent. Each thread pool has a `QueueCapacity` of 100. If AI processing falls behind — for example, if Gemini latency spikes — jobs pile up in that in-memory queue. I handle this with:
+
+1. **RetryScheduler** — a `@Scheduled` job that runs every 60 seconds, queries a `failed_jobs` table, and re-publishes events for any jobs that failed. It implements backoff: first retry at 5 min, second at 10 min, gives up after 3 attempts.
+2. **Meeting status tracking** — every meeting has a `status` field (`CREATED` → `TRANSCRIBING` → `TRANSCRIBED` → `PROCESSING_AI` → `COMPLETED` / `FAILED`) with timestamps at each transition. Jobs stuck in `PROCESSING_AI` for more than X minutes are my observable "consumer lag" metric.
+3. **Swap-friendly design** — `TranscriptionService` and `AIProcessingService` are `@EventListener`s. If traffic scaled past what `@Async` can handle, I'd replace the `eventPublisher.publishEvent()` calls with a Kafka producer and add consumer implementations — the core business logic would not change.
+
+**Code references:** `RetryScheduler.java` (`@Scheduled` every 60s, max 3 retries), `TranscriptionService.java` (`@EventListener @Async("transcriptionExecutor")`), `AIProcessingService.java` (`@EventListener @Async("aiProcessingExecutor")`), `database-schema.sql` (`retry_count`, `processing_duration_ms` columns).
+
+---
+
+#### **Q34. Has anything you built or fixed ever prevented a production issue?**
+**Answer:** Yes — the **RetryScheduler with `failed_jobs` table** directly prevents a class of silent data loss.
+
+Before building this, if the Gemini API returned a 503 during AI processing, the exception was caught, the meeting was marked `FAILED`, and the user saw an error with no automatic recovery path.
+
+After adding the `failed_jobs` table and `RetryScheduler`:
+- The `AIProcessingService` catches the exception and records a `FailedJob` row with `status='PENDING'` and `nextAttempt = now + 5 minutes`.
+- The scheduler wakes up every 60 seconds, finds eligible rows, and re-publishes the original domain event — transparently restarting the pipeline from the correct stage.
+- After 3 failed retries, the job transitions to `GIVEN_UP` and the user is notified.
+
+This means transient API failures — which happen regularly with rate-limited AI services — are completely invisible to the user in the happy path. Only persistent, unrecoverable failures surface as actual errors.
+
+Additionally, the `GlobalExceptionHandler` (`@ControllerAdvice`) ensures that any unexpected exception from any controller returns a consistent, structured JSON error response rather than a raw Spring stack trace — preventing information leakage and improving debuggability.
+
+**Code references:** `RetryScheduler.java` (full retry logic), `AIProcessingService.java` (`recordFailedJob()` on failure, line ~269), `GlobalExceptionHandler.java` (`@ControllerAdvice`).
+
+---
+
+#### **Q35. Did you ever write something (a doc, a test, a script) that saved someone else repeated work?**
+**Answer:** Three things stand out:
+
+1. **`interview_questions.md`** — A 30+ question interview prep document covering architecture, DB, security, async, scaling, and real-world scenarios for this project. Each question is answered with specific technical reasoning tied to the actual code, so anyone picking up this project for onboarding or a portfolio walkthrough has a ready reference without reading source code.
+
+2. **`RUN_PROJECT.md`** — A detailed runbook covering how to start the full stack: required environment variables, Docker Compose for PostgreSQL, backend startup order, and frontend setup. Without this, every new setup requires reverse-engineering the codebase to figure out what `.env` keys are needed and in what order services must start.
+
+3. **Swagger/OpenAPI auto-documentation** — By adding `springdoc-openapi` and annotating every controller with `@Operation` and `@Tag`, the API is self-documenting. Anyone integrating — frontend devs, QA testers — can hit `/swagger-ui.html` and see all endpoints, parameters, and response schemas without reading controller source code. That is ongoing saved work for every future collaborator.
+
+**Code references:** `OpenApiConfig.java` (Swagger setup), `MeetingController.java` (`@Operation` annotations on all endpoints), `RUN_PROJECT.md`, `interview_questions.md`.
