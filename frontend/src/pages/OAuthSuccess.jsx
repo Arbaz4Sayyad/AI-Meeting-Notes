@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -24,15 +24,15 @@ export default function OAuthSuccess() {
       navigate('/dashboard');
     } else {
       console.error('Missing OAuth callback parameters');
-      navigate('/login?error=oauth_failed');
+      navigate('/login');
     }
   }, [location, login, navigate]);
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0b0d13] flex items-center justify-center">
       <div className="text-center">
-        <div className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-teal-200">Completing sign in...</p>
+        <div className="w-8 h-8 border-2 border-slate-900 dark:border-white border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <p className="text-xs text-slate-500 font-medium">Completing authentication...</p>
       </div>
     </div>
   );

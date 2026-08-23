@@ -1,27 +1,46 @@
-import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useRef } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { 
+  ArrowLeft, 
+  UploadCloud, 
+  FileText, 
+  Calendar, 
+  Clock, 
+  Users, 
+  Video, 
+  MapPin, 
+  Plus, 
+  X, 
+  FileAudio,
+  AlertCircle,
+  Sparkles
+} from 'lucide-react';
 import { meetingsApi } from '../api/client';
-import { useAuth } from '../context/AuthContext';
-import Navbar from '../components/Navbar';
+import AppShell from '../components/layout/AppShell';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
+import Input, { Textarea } from '../components/ui/Input';
 
 export default function CreateMeeting() {
-  const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const templateData = location.state?.template;
+
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    meetingDate: '',
-    startTime: '',
-    endTime: '',
-    attendees: [],
+    title: templateData?.title || '',
+    description: templateData?.description || '',
+    meetingDate: new Date().toISOString().split('T')[0],
+    startTime: '09:00',
+    endTime: '10:00',
+    attendees: templateData?.suggestedParticipants || [],
     meetingType: 'ONLINE',
     meetingLink: '',
     location: '',
     language: 'en',
-    agendaNotes: '',
+    agendaNotes: templateData?.agendaItems?.join('\n') || '',
     transcript: '',
-    generateTranscript: false
   });
+
   const [attendeeInput, setAttendeeInput] = useState('');
   const [file, setFile] = useState(null);
   const [error, setError] = useState('');
@@ -31,125 +50,59 @@ export default function CreateMeeting() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleAttendeeAdd = () => {
-    const email = attendeeInput.trim();
-    if (email && !formData.attendees.includes(email)) {
-      setFormData(prev => ({
-        ...prev,
-        attendees: [...prev.attendees, email]
-      }));
+    const val = attendeeInput.trim();
+    if (val && !formData.attendees.includes(val)) {
+      setFormData(prev => ({ ...prev, attendees: [...prev.attendees, val] }));
       setAttendeeInput('');
     }
   };
 
-  const handleAttendeeRemove = (email) => {
-    setFormData(prev => ({
-      ...prev,
-      attendees: prev.attendees.filter(a => a !== email)
-    }));
-  };
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAttendeeAdd();
-    }
-  };
-
-  const handleFile = (e) => {
-    const f = e.target.files?.[0];
-    if (f) {
-      validateAndSetFile(f);
-    }
+  const handleAttendeeRemove = (item) => {
+    setFormData(prev => ({ ...prev, attendees: prev.attendees.filter(a => a !== item) }));
   };
 
   const validateAndSetFile = (f) => {
-    const allowedTypes = ['audio/mp3', 'audio/wav', 'audio/mpeg', 'audio/m4a', 'audio/x-m4a'];
     const allowedExtensions = ['.mp3', '.wav', '.m4a'];
-    
-    const isValidType = allowedTypes.includes(f.type) || 
-                       allowedExtensions.some(ext => f.name.toLowerCase().endsWith(ext));
-    
-    if (!isValidType) {
-      setError('Please select a valid audio file (MP3, WAV, or M4A)');
+    const hasValidExt = allowedExtensions.some(ext => f.name.toLowerCase().endsWith(ext));
+    if (!hasValidExt) {
+      setError('Please upload a valid audio file (MP3, WAV, or M4A)');
       return;
     }
-    
     const maxSize = 25 * 1024 * 1024; // 25MB
     if (f.size > maxSize) {
-      setError('File size must be less than 25MB');
+      setError('File size must be under 25MB');
       return;
     }
-    
     setFile(f);
     setError('');
-    if (!formData.title) setFormData(prev => ({ ...prev, title: f.name.replace(/\.[^.]+$/, '') }));
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile) {
-      validateAndSetFile(droppedFile);
+    if (!formData.title) {
+      setFormData(prev => ({ ...prev, title: f.name.replace(/\.[^.]+$/, '') }));
     }
-  };
-
-  const openFileDialog = () => {
-    fileInputRef.current?.click();
-  };
-
-  const removeFile = () => {
-    setFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   const validateForm = () => {
     if (!formData.title.trim()) {
-      setError('Title is required');
+      setError('Meeting title is required.');
       return false;
     }
     if (!formData.meetingDate) {
-      setError('Meeting date is required');
+      setError('Meeting date is required.');
       return false;
     }
     if (!formData.startTime) {
-      setError('Start time is required');
+      setError('Start time is required.');
       return false;
     }
-    if (formData.meetingType === 'ONLINE' && !formData.meetingLink && !file) {
-      setError('Meeting link or audio file is required for online meetings');
+    if (formData.meetingType === 'ONLINE' && !formData.meetingLink && !file && !formData.transcript) {
+      setError('Please provide a meeting URL, upload an audio recording, or add a transcript.');
       return false;
     }
     if (formData.meetingType === 'OFFLINE' && !formData.location) {
-      setError('Location is required for offline meetings');
+      setError('Location is required for in-person meetings.');
       return false;
     }
     return true;
@@ -158,30 +111,12 @@ export default function CreateMeeting() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
-    if (!validateForm()) {
-      return;
-    }
-    
+
+    if (!validateForm()) return;
+
     setLoading(true);
     try {
       if (file) {
-        // Create meeting with audio file and metadata
-        const formDataWithFile = new FormData();
-        formDataWithFile.append('title', formData.title || file.name);
-        formDataWithFile.append('description', formData.description);
-        formDataWithFile.append('meetingDate', formData.meetingDate);
-        formDataWithFile.append('startTime', formData.startTime);
-        formDataWithFile.append('endTime', formData.endTime);
-        formDataWithFile.append('attendees', JSON.stringify(formData.attendees));
-        formDataWithFile.append('meetingType', formData.meetingType);
-        formDataWithFile.append('meetingLink', formData.meetingLink);
-        formDataWithFile.append('location', formData.location);
-        formDataWithFile.append('language', formData.language);
-        formDataWithFile.append('agendaNotes', formData.agendaNotes);
-        formDataWithFile.append('transcript', formData.transcript);
-        formDataWithFile.append('file', file);
-        
         const { data } = await meetingsApi.uploadWithMetadata({
           title: formData.title || file.name,
           description: formData.description,
@@ -197,324 +132,321 @@ export default function CreateMeeting() {
           transcript: formData.transcript,
           file: file
         });
+        if (data.success) {
+          navigate(`/meetings/${data.data.id}`);
+        }
       } else {
-        // Create meeting with transcript only
         const { data } = await meetingsApi.create(formData);
-        if (data.success) navigate(`/meetings/${data.data.id}`);
+        if (data.success) {
+          navigate(`/meetings/${data.data.id}`);
+        }
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create meeting');
+      setError(err.response?.data?.message || 'Failed to create meeting.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Navbar />
+    <AppShell>
+      <div className="max-w-3xl mx-auto">
+        <div className="mb-4">
+          <Link 
+            to="/meetings"
+            className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to meetings</span>
+          </Link>
+        </div>
 
-      <main className="max-w-4xl mx-auto p-6">
-        <h1 className="text-2xl font-bold text-slate-800 mb-6">Create Meeting</h1>
+        <div className="flex items-center justify-between pb-4 mb-6 border-b border-slate-200 dark:border-[#1e2436]">
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+              Create New Meeting
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Set up meeting details, attach audio recordings, or paste existing transcripts.
+            </p>
+          </div>
+        </div>
+
+        {error && (
+          <div className="mb-6 p-3 rounded-md bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-xs text-rose-700 dark:text-rose-300 flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>{error}</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {error && (
-            <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg text-sm">{error}</div>
-          )}
+          {/* Section 1: General Info */}
+          <Card>
+            <h2 className="text-xs font-semibold text-slate-900 dark:text-white uppercase tracking-wider mb-4">
+              1. General Details
+            </h2>
 
-          {/* Basic Information */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-100">
-            <h2 className="text-lg font-semibold text-slate-800 mb-4">Basic Information</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Title *</label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  placeholder="Meeting title"
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  required
-                />
-              </div>
+            <div className="space-y-4">
+              <Input
+                label="Meeting Title"
+                name="title"
+                value={formData.title}
+                onChange={handleInputChange}
+                placeholder="e.g. Weekly Engineering Sync"
+                required
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Language</label>
-                <select
-                  name="language"
-                  value={formData.language}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                >
-                  <option value="en">English</option>
-                  <option value="es">Spanish</option>
-                  <option value="fr">French</option>
-                  <option value="de">German</option>
-                  <option value="zh">Chinese</option>
-                  <option value="ja">Japanese</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-              <textarea
+              <Textarea
+                label="Description"
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
-                placeholder="Meeting description..."
-                rows={3}
-                className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                placeholder="Brief summary or context of this meeting..."
+                rows={2}
               />
             </div>
-          </div>
+          </Card>
 
-          {/* Date and Time */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-100">
-            <h2 className="text-lg font-semibold text-slate-800 mb-4">Date and Time</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Date *</label>
-                <input
-                  type="date"
-                  name="meetingDate"
-                  value={formData.meetingDate}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  required
-                />
-              </div>
+          {/* Section 2: Date & Logistics */}
+          <Card>
+            <h2 className="text-xs font-semibold text-slate-900 dark:text-white uppercase tracking-wider mb-4">
+              2. Schedule & Logistics
+            </h2>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Start Time *</label>
-                <input
-                  type="time"
-                  name="startTime"
-                  value={formData.startTime}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  required
-                />
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+              <Input
+                label="Date"
+                type="date"
+                name="meetingDate"
+                value={formData.meetingDate}
+                onChange={handleInputChange}
+                required
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">End Time</label>
-                <input
-                  type="time"
-                  name="endTime"
-                  value={formData.endTime}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-          </div>
+              <Input
+                label="Start Time"
+                type="time"
+                name="startTime"
+                value={formData.startTime}
+                onChange={handleInputChange}
+                required
+              />
 
-          {/* Meeting Type */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-100">
-            <h2 className="text-lg font-semibold text-slate-800 mb-4">Meeting Type</h2>
-            
-            <div className="flex gap-4 mb-4">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="meetingType"
-                  value="ONLINE"
-                  checked={formData.meetingType === 'ONLINE'}
-                  onChange={handleInputChange}
-                  className="mr-2"
-                />
-                <span>Online Meeting</span>
-              </label>
-              
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="meetingType"
-                  value="OFFLINE"
-                  checked={formData.meetingType === 'OFFLINE'}
-                  onChange={handleInputChange}
-                  className="mr-2"
-                />
-                <span>Offline Meeting</span>
-              </label>
+              <Input
+                label="End Time"
+                type="time"
+                name="endTime"
+                value={formData.endTime}
+                onChange={handleInputChange}
+              />
             </div>
 
-            {formData.meetingType === 'ONLINE' ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Meeting Link</label>
-                <input
-                  type="url"
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                  Meeting Type
+                </label>
+                <select
+                  name="meetingType"
+                  value={formData.meetingType}
+                  onChange={handleInputChange}
+                  className="w-full text-sm bg-white dark:bg-[#12151f] text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-[#1e2436] rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                >
+                  <option value="ONLINE">Online (Virtual)</option>
+                  <option value="OFFLINE">Offline (In-Person)</option>
+                </select>
+              </div>
+
+              {formData.meetingType === 'ONLINE' ? (
+                <Input
+                  label="Meeting URL"
                   name="meetingLink"
                   value={formData.meetingLink}
                   onChange={handleInputChange}
-                  placeholder="https://zoom.us/j/..."
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  placeholder="https://meet.google.com/xyz-abc"
                 />
-              </div>
-            ) : (
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Location *</label>
-                <input
-                  type="text"
+              ) : (
+                <Input
+                  label="Location / Room"
                   name="location"
                   value={formData.location}
                   onChange={handleInputChange}
-                  placeholder="Conference Room A, Office Building..."
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  placeholder="Conference Room 4B"
                   required={formData.meetingType === 'OFFLINE'}
                 />
-              </div>
-            )}
-          </div>
-
-          {/* Attendees */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-100">
-            <h2 className="text-lg font-semibold text-slate-800 mb-4">Attendees</h2>
-            
-            <div className="flex gap-2 mb-3">
-              <input
-                type="email"
-                value={attendeeInput}
-                onChange={(e) => setAttendeeInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Add attendee email..."
-                className="flex-1 px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-              />
-              <button
-                type="button"
-                onClick={handleAttendeeAdd}
-                className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
-              >
-                Add
-              </button>
+              )}
             </div>
+          </Card>
 
-            <div className="flex flex-wrap gap-2">
-              {formData.attendees.map((email, index) => (
-                <span
-                  key={index}
-                  className="inline-flex items-center gap-1 px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-sm"
-                >
-                  {email}
-                  <button
-                    type="button"
-                    onClick={() => handleAttendeeRemove(email)}
-                    className="ml-1 text-teal-600 hover:text-teal-800"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
-          </div>
+          {/* Section 3: Attendees & Agenda */}
+          <Card>
+            <h2 className="text-xs font-semibold text-slate-900 dark:text-white uppercase tracking-wider mb-4">
+              3. Attendees & Agenda
+            </h2>
 
-          {/* Audio Upload */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-100">
-            <h2 className="text-lg font-semibold text-slate-800 mb-4">Audio File (Optional)</h2>
-            
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".mp3,.wav,.m4a"
-              onChange={handleFile}
-              className="hidden"
-            />
-            
-            <div
-              className={`
-                relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all
-                ${isDragging 
-                  ? 'border-teal-500 bg-teal-50' 
-                  : 'border-slate-300 hover:border-teal-400 hover:bg-slate-50'
-                }
-                ${file ? 'border-teal-500 bg-teal-50' : ''}
-              `}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={openFileDialog}
-            >
-              {file ? (
-                <div className="space-y-2">
-                  <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto">
-                    <svg className="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                    </svg>
-                  </div>
-                  <p className="text-lg font-medium text-slate-800">{file.name}</p>
-                  <p className="text-sm text-slate-500">{formatFileSize(file.size)}</p>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeFile();
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                  Participants / Attendees
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={attendeeInput}
+                    onChange={(e) => setAttendeeInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAttendeeAdd();
+                      }
                     }}
-                    className="mt-2 px-4 py-2 text-sm bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
-                  >
-                    Remove File
-                  </button>
+                    placeholder="Enter name or email and press Enter..."
+                    className="flex-1 text-sm bg-white dark:bg-[#12151f] text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-[#1e2436] rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  />
+                  <Button variant="secondary" size="sm" onClick={handleAttendeeAdd}>
+                    Add
+                  </Button>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto">
-                    <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
+
+                {formData.attendees.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2.5">
+                    {formData.attendees.map((attendee, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
+                      >
+                        {attendee}
+                        <button
+                          type="button"
+                          onClick={() => handleAttendeeRemove(attendee)}
+                          className="hover:text-red-500"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
                   </div>
-                  <p className="text-lg font-medium text-slate-700">
-                    {isDragging ? 'Drop your audio file here' : 'Choose audio file or drag and drop'}
-                  </p>
-                  <p className="text-sm text-slate-500">
-                    MP3, WAV, or M4A (max 25MB)
-                  </p>
+                )}
+              </div>
+
+              <Textarea
+                label="Agenda Notes"
+                name="agendaNotes"
+                value={formData.agendaNotes}
+                onChange={handleInputChange}
+                placeholder="Key topics to cover in this session..."
+                rows={3}
+              />
+            </div>
+          </Card>
+
+          {/* Section 4: Audio File or Direct Transcript */}
+          <Card>
+            <h2 className="text-xs font-semibold text-slate-900 dark:text-white uppercase tracking-wider mb-4">
+              4. Audio Recording or Transcript
+            </h2>
+
+            <div className="space-y-4">
+              {/* Dropzone */}
+              <div
+                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDragging(false);
+                  const f = e.dataTransfer.files?.[0];
+                  if (f) validateAndSetFile(f);
+                }}
+                onClick={() => fileInputRef.current?.click()}
+                className={`p-6 border border-dashed rounded-lg text-center cursor-pointer transition-colors ${
+                  isDragging
+                    ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-950/20'
+                    : 'border-slate-200 dark:border-[#1e2436] hover:border-slate-300 dark:hover:border-slate-700 bg-slate-50/40 dark:bg-[#0e111a]/40'
+                }`}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".mp3,.wav,.m4a,audio/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) validateAndSetFile(f);
+                  }}
+                />
+
+                {file ? (
+                  <div className="flex items-center justify-center gap-3">
+                    <FileAudio className="w-6 h-6 text-blue-600 dark:text-blue-400 shrink-0" />
+                    <div className="text-left">
+                      <p className="text-xs font-semibold text-slate-900 dark:text-white truncate max-w-xs">
+                        {file.name}
+                      </p>
+                      <p className="text-[11px] text-slate-500">
+                        {(file.size / (1024 * 1024)).toFixed(2)} MB
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFile(null);
+                        if (fileInputRef.current) fileInputRef.current.value = '';
+                      }}
+                      className="p-1 rounded text-slate-400 hover:text-red-500"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <UploadCloud className="w-7 h-7 text-slate-400 mx-auto mb-2" />
+                    <p className="text-xs font-medium text-slate-800 dark:text-slate-200">
+                      Drag and drop your meeting recording here, or <span className="text-blue-600 dark:text-blue-400 underline">browse</span>
+                    </p>
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      Supported formats: MP3, WAV, M4A (Max 25MB)
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Or manual transcript */}
+              {!file && (
+                <div className="pt-2">
+                  <Textarea
+                    label="Or Paste Transcript Directly"
+                    name="transcript"
+                    value={formData.transcript}
+                    onChange={handleInputChange}
+                    placeholder="If you already have text notes or transcript, paste them here..."
+                    rows={4}
+                  />
                 </div>
               )}
             </div>
+          </Card>
+
+          {/* Form Actions */}
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <Link to="/meetings">
+              <Button variant="secondary" size="md">
+                Cancel
+              </Button>
+            </Link>
+
+            <Button
+              type="submit"
+              variant="primary"
+              size="md"
+              loading={loading}
+              icon={Plus}
+            >
+              {file ? 'Create & Process Recording' : 'Create Meeting'}
+            </Button>
           </div>
-
-          {/* Agenda and Transcript */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-100">
-            <h2 className="text-lg font-semibold text-slate-800 mb-4">Agenda & Transcript</h2>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Agenda / Notes</label>
-                <textarea
-                  name="agendaNotes"
-                  value={formData.agendaNotes}
-                  onChange={handleInputChange}
-                  placeholder="Meeting agenda, topics to discuss, notes..."
-                  rows={4}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Transcript</label>
-                <textarea
-                  name="transcript"
-                  value={formData.transcript}
-                  onChange={handleInputChange}
-                  placeholder="Paste meeting transcript here..."
-                  rows={6}
-                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 disabled:opacity-50 transition-colors"
-          >
-            {loading ? 'Creating Meeting...' : 'Create Meeting'}
-          </button>
         </form>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }

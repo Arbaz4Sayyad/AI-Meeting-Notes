@@ -1,214 +1,138 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Moon, Sun, Github } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useTheme } from '../../hooks/useTheme';
+import { Link } from 'react-router-dom';
+import { Menu, X, Sun, Moon, Github, ArrowRight } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
+import Button from '../ui/Button';
 
-const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
+export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const { isDark, toggleTheme } = useTheme();
-  const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const { isDarkMode, toggleTheme } = useTheme();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Smooth scroll for navigation links
-  const handleSmoothScroll = (e, href) => {
-    e.preventDefault();
-    const target = document.querySelector(href);
-    if (target) {
-      target.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
-    setIsOpen(false);
-  };
-
-  const navItems = [
+  const navLinks = [
     { name: 'Features', href: '#features' },
-    { name: 'How it Works', href: '#how-it-works' },
-    { name: 'Tech', href: '#architecture' },
-    { name: 'GitHub', href: 'https://github.com/Arbaz4Sayyad/AI-Meeting-Notes' },
-    { name: 'Login', href: '/login' },
+    { name: 'Architecture', href: '#architecture' },
+    { name: 'Tech Stack', href: '#tech-stack' },
+    { name: 'Security', href: '#security' },
   ];
 
   return (
-    <motion.nav
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-150 ${
         scrolled
-          ? isDark
-            ? 'bg-gray-900/90 backdrop-blur-md border-b border-gray-800'
-            : 'bg-white/90 backdrop-blur-md border-b border-gray-200'
-          : isDark
-          ? 'bg-gray-900'
-          : 'bg-white'
+          ? 'bg-white/90 dark:bg-[#0b0d13]/90 backdrop-blur-md border-b border-slate-200 dark:border-[#1e2436]'
+          : 'bg-transparent'
       }`}
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5 }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <motion.div
-            className="flex items-center space-x-2"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">AI</span>
-            </div>
-            <span className={`font-bold text-xl ${isDark ? 'text-white' : 'text-gray-900'}`}>
-              Meeting Notes
-            </span>
-          </motion.div>
-
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            {navItems.map((item) => (
-              <motion.a
-                key={item.name}
-                href={item.href}
-                target={item.name === 'GitHub' ? '_blank' : undefined}
-                rel={item.name === 'GitHub' ? 'noopener noreferrer' : undefined}
-                onClick={item.href.startsWith('#') ? (e) => handleSmoothScroll(e, item.href) : undefined}
-                className={`relative group px-1 py-2 flex items-center space-x-1 font-medium transition-all duration-300 ${
-                  item.name === 'Login'
-                    ? isDark
-                      ? 'text-blue-400 hover:text-blue-300'
-                      : 'text-blue-600 hover:text-blue-500'
-                    : isDark
-                    ? 'text-gray-300 hover:text-white'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-                whileHover={{ y: -2 }}
-              >
-                {item.name === 'GitHub' && <Github className="w-4 h-4 mr-1" />}
-                <span>{item.name}</span>
-                
-                {/* Animated Underline */}
-                <span className={`absolute bottom-0 left-0 w-0 h-0.5 transition-all duration-300 group-hover:w-full ${
-                  item.name === 'Login'
-                    ? 'bg-blue-500'
-                    : isDark ? 'bg-white' : 'bg-gray-900'
-                }`} />
-              </motion.a>
-            ))}
-            <motion.button
-              onClick={() => navigate('/register')}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium hover:shadow-lg transition-shadow"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Get Started
-            </motion.button>
-            <motion.button
-              onClick={toggleTheme}
-              className={`p-2 rounded-full transition-colors ${
-                isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-              }`}
-              whileHover={{ rotate: 180 }}
-              transition={{ duration: 0.3 }}
-            >
-              {isDark ? (
-                <Sun className="w-5 h-5 text-yellow-400" />
-              ) : (
-                <Moon className="w-5 h-5 text-gray-600" />
-              )}
-            </motion.button>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+        {/* Brand */}
+        <Link to="/" className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-md bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center font-bold text-xs tracking-wider">
+            M
           </div>
+          <span className="font-semibold text-sm tracking-tight text-slate-900 dark:text-white">
+            Meeting AI
+          </span>
+        </Link>
 
-          {/* Mobile menu button */}
-          <div className="md:hidden flex items-center space-x-2">
-            <motion.button
-              onClick={toggleTheme}
-              className={`p-2 rounded-full transition-colors ${
-                isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-              }`}
-              whileHover={{ rotate: 180 }}
-              transition={{ duration: 0.3 }}
+        {/* Desktop links */}
+        <div className="hidden md:flex items-center gap-6 text-xs font-medium text-slate-600 dark:text-slate-400">
+          {navLinks.map((link) => (
+            <a
+              key={link.name}
+              href={link.href}
+              className="hover:text-slate-900 dark:hover:text-white transition-colors"
             >
-              {isDark ? (
-                <Sun className="w-5 h-5 text-yellow-400" />
-              ) : (
-                <Moon className="w-5 h-5 text-gray-600" />
-              )}
-            </motion.button>
-            <motion.button
-              onClick={() => setIsOpen(!isOpen)}
-              className={`p-2 rounded-full transition-colors ${
-                isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-              }`}
-              whileTap={{ scale: 0.95 }}
-            >
-              {isOpen ? (
-                <X className={`w-6 h-6 ${isDark ? 'text-white' : 'text-gray-900'}`} />
-              ) : (
-                <Menu className={`w-6 h-6 ${isDark ? 'text-white' : 'text-gray-900'}`} />
-              )}
-            </motion.button>
-          </div>
+              {link.name}
+            </a>
+          ))}
         </div>
 
-        {/* Mobile Navigation */}
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className={`md:hidden overflow-hidden ${
-                isDark ? 'bg-gray-900' : 'bg-white'
-              }`}
-            >
-              <div className="px-2 pt-2 pb-3 space-y-1">
-                {navItems.map((item) => (
-                  <motion.a
-                    key={item.name}
-                    href={item.href}
-                    target={item.name === 'GitHub' ? '_blank' : undefined}
-                    rel={item.name === 'GitHub' ? 'noopener noreferrer' : undefined}
-                    onClick={item.href.startsWith('#') ? (e) => handleSmoothScroll(e, item.href) : undefined}
-                    className={`flex items-center space-x-3 px-3 py-2 rounded-md text-base font-medium transition-all duration-300 ${
-                      item.name === 'Login'
-                        ? isDark
-                          ? 'text-blue-400 hover:bg-gray-800'
-                          : 'text-blue-600 hover:bg-gray-100'
-                        : isDark
-                        ? 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                    }`}
-                    whileHover={{ x: 5 }}
-                  >
-                    {/* Icon removed for mobile as per user request */}
-                    <span>{item.name}</span>
-                  </motion.a>
-                ))}
-                <motion.div className="px-3 py-2">
-                  <motion.button
-                    onClick={() => navigate('/register')}
-                    className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-full font-medium hover:shadow-lg transition-shadow"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    Get Started
-                  </motion.button>
-                </motion.div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </motion.nav>
-  );
-};
+        {/* Action buttons */}
+        <div className="hidden md:flex items-center gap-3">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="p-1.5 rounded-md text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+            title={isDarkMode ? "Light mode" : "Dark mode"}
+          >
+            {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
 
-export default Navbar;
+          <a
+            href="https://github.com/Arbaz4Sayyad/AI-Meeting-Notes"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-1.5 rounded-md text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+            title="GitHub Repository"
+          >
+            <Github className="w-4 h-4" />
+          </a>
+
+          <Link to="/login" className="text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-2">
+            Sign In
+          </Link>
+
+          <Link to="/register">
+            <Button size="sm" variant="primary">
+              Get Started
+            </Button>
+          </Link>
+        </div>
+
+        {/* Mobile menu trigger */}
+        <div className="flex md:hidden items-center gap-2">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="p-1.5 rounded-md text-slate-500"
+          >
+            {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="p-1.5 rounded-md text-slate-600 dark:text-slate-300"
+          >
+            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Drawer */}
+      {mobileOpen && (
+        <div className="md:hidden bg-white dark:bg-[#12151f] border-b border-slate-200 dark:border-[#1e2436] px-4 py-4 space-y-3 text-sm">
+          {navLinks.map((link) => (
+            <a
+              key={link.name}
+              href={link.href}
+              onClick={() => setMobileOpen(false)}
+              className="block text-slate-600 dark:text-slate-400 font-medium py-1"
+            >
+              {link.name}
+            </a>
+          ))}
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex gap-2">
+            <Link to="/login" className="flex-1" onClick={() => setMobileOpen(false)}>
+              <Button variant="secondary" size="sm" className="w-full">
+                Sign In
+              </Button>
+            </Link>
+            <Link to="/register" className="flex-1" onClick={() => setMobileOpen(false)}>
+              <Button variant="primary" size="sm" className="w-full">
+                Get Started
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+}

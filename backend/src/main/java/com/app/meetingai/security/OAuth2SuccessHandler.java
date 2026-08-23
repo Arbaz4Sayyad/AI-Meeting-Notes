@@ -22,6 +22,9 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final UserService userService;
     private final OAuth2TokenService oAuth2TokenService;
 
+    @org.springframework.beans.factory.annotation.Value("${app.frontend-url:http://localhost:3000}")
+    private String frontendUrl;
+
     public OAuth2SuccessHandler(UserService userService, OAuth2TokenService oAuth2TokenService) {
         this.userService = userService;
         this.oAuth2TokenService = oAuth2TokenService;
@@ -47,8 +50,10 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         String token = oAuth2TokenService.generateTokenForUser(user);
         
         // Redirect to frontend with token and user details
+        String baseUrl = (frontendUrl != null ? frontendUrl.replaceAll("/+$", "") : "http://localhost:3000");
         String redirectUrl = String.format(
-                "http://localhost:3000/oauth-success?token=%s&userId=%d&name=%s&email=%s",
+                "%s/oauth-success?token=%s&userId=%d&name=%s&email=%s",
+                baseUrl,
                 URLEncoder.encode(token, StandardCharsets.UTF_8),
                 user.getId(),
                 URLEncoder.encode(user.getName(), StandardCharsets.UTF_8),

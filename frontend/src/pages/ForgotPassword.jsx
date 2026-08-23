@@ -1,6 +1,10 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { ArrowLeft, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { authApi } from '../api/client';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
+import Input from '../components/ui/Input';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -29,54 +33,72 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-teal-900 to-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center p-4 transition-colors duration-300">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white tracking-tight">Meeting AI</h1>
-          <p className="text-teal-200 mt-2">Smart meeting notes with AI</p>
-        </div>
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-xl border border-white/10">
-          <h2 className="text-xl font-semibold text-white mb-2">Forgot Password</h2>
-          <p className="text-teal-100 text-sm mb-6">Enter your email and we&apos;ll send you a link to reset your password.</p>
-          
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="bg-red-500/20 text-red-200 px-4 py-3 rounded-lg text-sm">{error}</div>
-            )}
-            {message && (
-              <div className="bg-teal-500/20 text-teal-200 px-4 py-3 rounded-lg text-sm">{message}</div>
-            )}
-            
-            <div>
-              <label className="block text-sm font-medium text-teal-100 mb-1">Email Address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-slate-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                placeholder="you@example.com"
-                required
-              />
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0b0d13] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
+        <Link to="/" className="inline-flex items-center gap-2 mb-4">
+          <div className="w-8 h-8 rounded-md bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center font-bold text-sm tracking-wider">
+            M
+          </div>
+          <span className="font-bold text-lg tracking-tight text-slate-900 dark:text-white">
+            Meeting AI
+          </span>
+        </Link>
+        <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+          Reset your password
+        </h2>
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          Enter your email address and we'll send you recovery instructions.
+        </p>
+      </div>
+
+      <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
+        <Card className="p-6 sm:p-8">
+          {error && (
+            <div className="mb-4 p-3 rounded-md bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-xs text-rose-700 dark:text-rose-300 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>{error}</span>
             </div>
-            
-            <button
+          )}
+
+          {message && (
+            <div className="mb-4 p-3 rounded-md bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-xs text-emerald-700 dark:text-emerald-300 flex items-start gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>{message}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input
+              label="Account Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@company.com"
+              required
+            />
+
+            <Button
               type="submit"
-              disabled={loading || message}
-              className="w-full py-3 px-4 bg-teal-600 hover:bg-teal-500 text-white font-medium rounded-lg transition disabled:opacity-50"
+              variant="primary"
+              size="md"
+              loading={loading}
+              disabled={!!message}
+              className="w-full mt-2"
             >
-              {loading ? 'Sending link...' : 'Send Reset Link'}
-            </button>
+              Send Reset Link
+            </Button>
           </form>
 
-          <div className="mt-8 text-center text-sm">
-            <Link to="/login" className="text-teal-400 hover:text-teal-300 font-medium flex items-center justify-center gap-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Back to Login
+          <div className="mt-6 text-center">
+            <Link 
+              to="/login"
+              className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors font-medium"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back to sign in</span>
             </Link>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );
