@@ -1,7 +1,84 @@
--- Dummy Data Seed Script for AI Meeting Notes
--- Populates demo user, meetings, transcripts, and AI-generated structured summaries
+-- ============================================================================
+-- Meeting AI: Complete Database Initialization & Seed Script
+-- Run this in your Neon / PostgreSQL SQL Editor to create tables & sample data
+-- ============================================================================
 
--- 1. Insert Demo Meetings for User ID = 1
+-- 1. Create Tables
+CREATE TABLE IF NOT EXISTS users (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255),
+    provider VARCHAR(50) NOT NULL DEFAULT 'local',
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS meetings (
+    id BIGSERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    meeting_date DATE,
+    start_time TIME,
+    end_time TIME,
+    attendees TEXT[],
+    meeting_type VARCHAR(20) DEFAULT 'ONLINE',
+    meeting_link VARCHAR(500),
+    location VARCHAR(255),
+    language VARCHAR(10) DEFAULT 'en',
+    agenda_notes TEXT,
+    audio_file_url VARCHAR(500),
+    transcript TEXT,
+    status VARCHAR(50) NOT NULL DEFAULT 'CREATED',
+    uploaded_at TIMESTAMP WITH TIME ZONE,
+    transcription_started_at TIMESTAMP WITH TIME ZONE,
+    transcription_completed_at TIMESTAMP WITH TIME ZONE,
+    ai_processing_started_at TIMESTAMP WITH TIME ZONE,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    error_message TEXT,
+    retry_count INTEGER DEFAULT 0,
+    processing_duration_ms BIGINT,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS meeting_summaries (
+    id BIGSERIAL PRIMARY KEY,
+    meeting_id BIGINT NOT NULL UNIQUE REFERENCES meetings(id) ON DELETE CASCADE,
+    summary TEXT,
+    key_points JSONB,
+    decisions JSONB,
+    action_items JSONB,
+    risks JSONB,
+    next_steps JSONB,
+    participants JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id BIGSERIAL PRIMARY KEY,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    expiry_date TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_meetings_user_id ON meetings(user_id);
+CREATE INDEX IF NOT EXISTS idx_meetings_created_at ON meetings(created_at);
+CREATE INDEX IF NOT EXISTS idx_meeting_summaries_meeting_id ON meeting_summaries(meeting_id);
+
+-- 2. Insert Demo User (demo@meetingai.com / password123)
+-- BCrypt hashed password for "password123"
+INSERT INTO users (id, name, email, password, provider, created_at)
+VALUES (
+    1, 
+    'Arbaz Sayyad', 
+    'demo@meetingai.com', 
+    '$2a$10$wN1Qy2J71kE3K11/1qfKxeh5oG1.1zVq81NfQ4z8qLp3K5z/Q7R9a', 
+    'local', 
+    NOW()
+)
+ON CONFLICT (email) DO NOTHING;
+
+-- 3. Insert Demo Meetings
 INSERT INTO meetings (
     id, user_id, title, description, meeting_date, start_time, end_time, 
     attendees, meeting_type, meeting_link, location, language, agenda_notes,
@@ -119,7 +196,7 @@ Arbaz: Gemini 2.5 Flash token costs remain minimal, and streaming chunks increme
 )
 ON CONFLICT (id) DO NOTHING;
 
--- 2. Insert Structured AI Meeting Summaries
+-- 4. Insert Structured AI Meeting Summaries
 INSERT INTO meeting_summaries (
     id, meeting_id, summary, key_points, decisions, action_items, risks, next_steps, participants, created_at
 ) VALUES
@@ -236,6 +313,7 @@ INSERT INTO meeting_summaries (
 )
 ON CONFLICT (id) DO NOTHING;
 
--- Reset primary key sequences
+-- 5. Reset primary key sequence counters
+SELECT setval('users_id_seq', (SELECT COALESCE(MAX(id), 1) FROM users));
 SELECT setval('meetings_id_seq', (SELECT COALESCE(MAX(id), 1) FROM meetings));
 SELECT setval('meeting_summaries_id_seq', (SELECT COALESCE(MAX(id), 1) FROM meeting_summaries));
