@@ -72,11 +72,12 @@ VALUES (
     1, 
     'Arbaz Sayyad', 
     'demo@meetingai.com', 
-    '$2a$10$wN1Qy2J71kE3K11/1qfKxeh5oG1.1zVq81NfQ4z8qLp3K5z/Q7R9a', 
-    'local', 
+    '$2a$10$xjVJYiYxbkw7RDWAgDlw5e2.xDqQ8LcIlXkut6yBEWp6VsV9gJsL6', 
+    'LOCAL', 
     NOW()
 )
-ON CONFLICT (email) DO NOTHING;
+ON CONFLICT (email) DO UPDATE 
+SET password = '$2a$10$xjVJYiYxbkw7RDWAgDlw5e2.xDqQ8LcIlXkut6yBEWp6VsV9gJsL6';
 
 -- 3. Insert Demo Meetings
 INSERT INTO meetings (
